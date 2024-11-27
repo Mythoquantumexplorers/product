@@ -1,0 +1,15 @@
+# Virtual environments
+product_env/
+.env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE configurations
+.vscode/
+.idea/
+
+# Dependency management
+*.egg-info/

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythoQuantum Explorers</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="flex flex-col bg-cyan-200 justify-between" style="min-height: 100vh;">
+        <div class="flex lg:flex-row flex-col justify-center">
+            <div class="w-2/5 p-10 flex items-center">
+            <img src="static\images\logo2.png" alt="MythoQuantum Explorers Logo" class="w-48 h-48 mr-3">
+                <div>
+                    <h1 class="text-4xl font-bold">MythoQuantum</h1>
+                    <h2 class="text-3xl mt-5">Explorers</h2>
+                </div>
+            </div>
+            <div class="mt-10 lg:ml-16 p-10 rounded-lg shadow-lg flex flex-col items-center justify-center flex-grow bg-white">
+            <h1 class="text-3xl font-bold text-center mb-10">Create Account</h1>
+            <form class="w-full max-w-md mx-auto">
+                <!-- Form Group -->
+                <div class="relative mb-8">
+                    <input 
+                        type="text" 
+                        id="companyFullName" 
+                        class="peer w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500 py-2" 
+                        placeholder="Company Full Name" 
+                    />
+                    <label 
+                        for="companyFullName" 
+                        class="absolute left-0 -top-5 text-gray-500 text-sm transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:-top-5 peer-focus:text-blue-500"
+                    >
+                        Company Full Name
+                    </label>
+                </div>
+        
+                <div class="relative mb-8">
+                    <input 
+                        type="email" 
+                        id="companyEmail" 
+                        class="peer w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500 py-2" 
+                        placeholder="Company Email Address" 
+                    />
+                    <label 
+                        for="companyEmail" 
+                        class="absolute left-0 -top-5 text-gray-500 text-sm transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:-top-5 peer-focus:text-blue-500"
+                    >
+                        Company Email Address
+                    </label>
+                </div>
+        
+                <div class="relative mb-8">
+                    <input 
+                        type="password" 
+                        id="companyPassword" 
+                        class="peer w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500 py-2" 
+                        placeholder="Company Password" 
+                    />
+                    <label 
+                        for="companyPassword" 
+                        class="absolute left-0 -top-5 text-gray-500 text-sm transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:-top-5 peer-focus:text-blue-500"
+                    >
+                        Company Password
+                    </label>
+                </div>
+        
+                <div class="relative mb-8">
+                    <input 
+                        type="url" 
+                        id="companyWebsite" 
+                        class="peer w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500 py-2" 
+                        placeholder="Company Website" 
+                    />
+                    <label 
+                        for="companyWebsite" 
+                        class="absolute left-0 -top-5 text-gray-500 text-sm transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base peer-focus:-top-5 peer-focus:text-blue-500"
+                    >
+                        Company Website
+                    </label>
+                </div>
+        
+                <!-- Submit Button -->
+                <div class="flex items-center justify-center">
+                    <button 
+                        type="submit" 
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline self-center"
+                    >
+                        Create Account
+                    </button>
+                </div>
+            </form>
+            </div>
+
+
+        </div>
+        <footer class="bg-gray-800 text-white text-center py-4 mt-10 top-0">
+            <p>&copy; 2024 MythoQuantum Explorers. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

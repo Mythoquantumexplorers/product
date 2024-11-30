@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-blue-600 text-white shadow-lg">
+        <nav class="container mx-auto flex items-center justify-between p-4">
+            <div class="flex space-x-4">
+                <span class="cursor-pointer hover:text-gray-200">File</span>
+                <span class="cursor-pointer hover:text-gray-200">Edit</span>
+                <span class="cursor-pointer hover:text-gray-200">View</span>
+                <span class="cursor-pointer hover:text-gray-200">Options</span>
+                <span class="cursor-pointer hover:text-gray-200">Help</span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto py-8 flex flex-col space-y-6">
+
+        <!-- Horizontal Actions -->
+        <nav class="bg-white rounded shadow-md p-4">
+            <ul class="flex justify-around">
+                <li>
+                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
+                        Analyze Data
+                    </button>
+                </li>
+                <li>
+                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
+                        Visualization
+                    </button>
+                </li>
+                <li>
+                  <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
+                      Dashboards
+                  </button>
+              </li>
+                <li>
+                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
+                        Modeling
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Panels -->
+        <div class="flex-grow flex space-x-6">
+
+            <!-- Column Details -->
+            <section class="w-1/6 bg-white rounded shadow-md p-6">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Column Features</h2>
+                <p class="text-gray-700 mb-2">Column Name: <span class="font-medium">Column1</span></p>
+                <p class="text-gray-700 mb-2">Data Type: <span class="font-medium">Numeric</span></p>
+                <p class="text-gray-700 mb-2">Mean: <span class="font-medium">200</span></p>
+                <p class="text-gray-700 mb-2">Variance: <span class="font-medium">100</span></p>
+                <p class="text-gray-700 mb-2">Null Values: <span class="font-medium">5</span></p>
+                <p class="text-gray-700">Unique Count: <span class="font-medium">100</span></p>
+            </section>
+
+            <!-- Grid Visualization -->
+            <section class="flex-grow bg-white rounded shadow-md p-6 flex flex-col">
+              <h2 class="text-xl font-semibold text-gray-700 mb-4">Data Grid</h2>
+              <div class="grid grid-cols-7 gap-4 flex-grow">
+                  <!-- Row 1 -->
+                  <div class="bg-blue-200 p-2 rounded text-center font-medium">Column 1</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 2</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 3</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 4</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 5</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 6</div>
+                  <div class="bg-gray-200 p-2 rounded text-center">Column 7</div>
+          
+                  <!-- Remaining Rows -->
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+          
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+                  <div class="bg-gray-200 p-2 rounded"></div>
+              </div>
+          </section>
+          
+
+        </div>
+    </main>
+
+</body>
+</html>

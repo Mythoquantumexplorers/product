@@ -16,6 +16,10 @@ def about():
 def signup():
     return render_template('signup.html')
 
+@app.route('/datagrid')
+def signup():
+    return render_template('datagrid.html')
+
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':

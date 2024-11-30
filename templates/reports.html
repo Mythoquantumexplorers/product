@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Main Layout -->
+    <div class="flex flex-1">
+        {% include 'sidebar.html' %}
+        <div class="flex-1 p-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- Page Title -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Reports</h1>
+
+                <!-- Reports Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Single Report Card -->
+                    <div class="bg-gray-800 text-white bg-white rounded-lg shadow-md hover:shadow-lg transition">
+                        <div class="p-6">
+                            <!-- Clickable Report Title -->
+                            <h2 class="text-lg font-semibold hover:underline mb-2">
+                                <a href="/reports/view/1" target="_blank">Sales Performance Report</a>
+                            </h2>
+                            <p class="text-sm text-gray-400 mb-4">
+                                This report provides an in-depth analysis of sales performance metrics.
+                            </p>
+                            <p class="text-xs text-gray-500 mb-6">Generated on: Nov 28, 2024</p>
+                            <div class="flex justify-between items-center">
+                                <button class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                                    <a href="/reports/download/1" download>Download</a>
+                                </button>
+                                <button class="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Repeat for Additional Reports -->
+                    <div class="bg-gray-800 text-white bg-white rounded-lg shadow-md hover:shadow-lg transition">
+                        <div class="p-6">
+                            <!-- Clickable Report Title -->
+                            <h2 class="text-lg font-semibold hover:underline mb-2">
+                                <a href="/reports/view/2" target="_blank">Customer Insights Report</a>
+                            </h2>
+                            <p class="text-sm text-gray-400 mb-4">
+                                Detailed insights into customer behavior and preferences.
+                            </p>
+                            <p class="text-xs text-gray-500 mb-6">Generated on: Nov 25, 2024</p>
+                            <div class="flex justify-between items-center">
+                                <button class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                                    <a href="/reports/download/2" download>Download</a>
+                                </button>
+                                <button class="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add More Cards as Needed -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

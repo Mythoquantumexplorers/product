@@ -1,0 +1,54 @@
+<div class="h-screen w-64 bg-gray-800 text-white flex flex-col">
+    <!-- Company Page Header -->
+    <div class="px-6 py-4 text-center font-bold text-lg border-b border-purple-600">
+        Company Name
+    </div>
+
+    <!-- Sidebar Menu -->
+    <ul class="flex-1 px-4 py-4 space-y-2">
+        <li>
+            <a href="/" 
+               class="flex items-center px-4 py-2 rounded-lg 
+                      {% if active_page == 'home' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                <span class="material-icons mr-4">home</span> <!-- Replace with your icon library -->
+                Home Page
+            </a>
+        </li>
+        <li>
+            <a href="/workspaces" 
+               class="flex items-center px-4 py-2 rounded-lg 
+                      {% if active_page == 'workspace' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                <span class="material-icons mr-4">work</span>
+                WorkSpaces
+            </a>
+        </li>
+        <li>
+            <a href="/dashboards" 
+               class="flex items-center px-4 py-2 rounded-lg 
+                      {% if active_page == 'dashboards' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                <span class="material-icons mr-4">dashboard</span>
+                Dashboards
+            </a>
+        </li>
+        <li>
+            <a href="/reports" 
+               class="flex items-center px-4 py-2 rounded-lg 
+                      {% if active_page == 'reports' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                <span class="material-icons mr-4">description</span>
+                Reports
+            </a>
+        </li>
+    </ul>
+
+    <!-- Footer (optional) -->
+    <div class="px-4 py-4 border-t border-purple-600">
+        <a href="/logout" 
+           class="flex items-center px-4 py-2 text-sm bg-gray-800 hover:bg-gray-600 rounded-lg transition">
+            <span class="material-icons mr-4">logout</span> <!-- Logout Icon -->
+            Logout
+        </a>
+    </div>
+    <div class="px-6 py-4 border-purple-600 text-sm">
+        &copy; 2024 Company Name
+    </div>
+</div>

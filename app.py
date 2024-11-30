@@ -17,7 +17,7 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/datagrid')
-def signup():
+def datagrid():
     return render_template('datagrid.html')
 
 @app.route('/login', methods=['GET','POST'])

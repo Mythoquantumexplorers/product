@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+body {
+  font-family: sans-serif;
+}
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+.column-select {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+  width: 350px; /* Increased width */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.column-select h2 {
+  font-weight: bold; /* Bold headline */
+  margin-bottom: 20px;
+}
+.column-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: white;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.column-option:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.column-details {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+  width: 100%;
+}
+.column-details h2 {
+  margin-bottom: 10px;
+}
+.column-details input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+.button {
+  padding: 8px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.button:hover {
+  background-color: #45a049;
+}
+.visualization {
+  margin-top: 20px;
+  text-align: center;
+}
+
+
+
+</style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="bg-gray-800 text-white sticky sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center py-4 px-6">
+        <div class="text-2xl font-bold">Product Name</div>
+        <nav class="space-x-6">
+            <a href="/" class="hover:text-purple-400">Home</a>
+            <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
+            <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
+            <a href="/reports" class="hover:text-purple-400">Reports</a>
+            <a href="/contact" class="hover:text-purple-400">Contact</a>
+            <a href="/login" class="hover:text-purple-400">Login</a>
+        </nav>
+    </div>
+  </header>
+  
+  <div class="container">
+
+    {% include 'sidebar.html' %}
+
+    <!-- Column Selector -->
+    <div class="column-select">
+      <h2>Select Columns</h2>
+      <div class="column-option" onclick="viewColumnDetails('Column 1')">
+        <input type="checkbox" id="column1" name="column1" checked>
+        <label for="column1">Column 1</label>
+        <i class="material-icons" onclick="event.stopPropagation(); viewColumnDetails('Column 1')">visibility</i>
+      </div>
+      <div class="column-option" onclick="viewColumnDetails('Column 2')">
+        <input type="checkbox" id="column2" name="column2">
+        <label for="column2">Column 2</label>
+        <i class="material-icons" onclick="event.stopPropagation(); viewColumnDetails('Column 2')">visibility</i>
+      </div>
+      <div class="column-option" onclick="viewColumnDetails('Column 3')">
+        <input type="checkbox" id="column3" name="column3">
+        <label for="column3">Column 3</label>
+        <i class="material-icons" onclick="event.stopPropagation(); viewColumnDetails('Column 3')">visibility</i>
+      </div>
+      <div class="column-option" onclick="viewColumnDetails('Column 4')">
+        <input type="checkbox" id="column4" name="column4">
+        <label for="column4">Column 4</label>
+        <i class="material-icons" onclick="event.stopPropagation(); viewColumnDetails('Column 4')">visibility</i>
+      </div>
+      <div class="column-option" onclick="viewColumnDetails('Column 5')">
+        <input type="checkbox" id="column5" name="column5">
+        <label for="column5">Column 5</label>
+        <i class="material-icons" onclick="event.stopPropagation(); viewColumnDetails('Column 5')">visibility</i>
+      </div>
+      <div class="left-button">
+        <button class="button">Submit</button>
+      </div>
+    </div>
+
+    <!-- Column Details -->
+    <div class="column-details">
+      <h1 style="font-weight: bold; color: #2D3748; font-size: 1.5rem; margin-bottom: 1rem; text-align: center;">Column Details</h1>
+      <div id="detailsContent">
+      </div>
+      <div class="additional-details">
+        <h3 style="font-weight: bold; color: #2D3748; font-size: 1.5rem;">Additional Details</h3>
+
+        <p id="totalRows">Total Rows: N/A</p>
+        <p id="dataType">Data Type: N/A</p>
+        <p id="missingValues">Missing Values: N/A</p>
+      </div>
+      <label style="font-weight: bold; color: #2D3748; font-size: 1rem;">
+        <input type="checkbox" id="removeOutliers"> Remove Outliers
+      </label>
+      
+      <div class="summary">
+        <h3 style="font-weight: bold; color: #2D3748; font-size: 1.5rem; margin-top: 1rem;">Summary</h3>
+        <div id="summaryContent">
+          <p>Select a column to view its summary.</p>
+        </div>
+      </div>
+
+      <div class="visualization">
+        <div style="text-align: right;">
+          <button class="button" onclick="visualizeColumn()">Visualize</button>
+        </div>
+        <div id="visualizationContainer" style="text-align: right; margin-top: 10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const columnData = {
+      "Column 1": [10, 20, 30, 40, 50],
+      "Column 2": [5, 15, 25, 35, 45],
+      "Column 3": [2, 4, 6, 8, 10],
+      "Column 4": [3, 6, 9, 12, 15],
+      "Column 5": [7, 14, 21, 28, 35]
+    };
+
+    const columnMetaData = {
+      "Column 1": { rows: 5, dataType: "Integer", missing: 0 },
+      "Column 2": { rows: 5, dataType: "Integer", missing: 1 },
+      "Column 3": { rows: 5, dataType: "Integer", missing: 0 },
+      "Column 4": { rows: 5, dataType: "Integer", missing: 0 },
+      "Column 5": { rows: 5, dataType: "Integer", missing: 0 }
+    };
+
+    function calculateSummary(data) {
+      const sum = data.reduce((a, b) => a + b, 0);
+      const mean = sum / data.length;
+      const sortedData = [...data].sort((a, b) => a - b);
+      const median = sortedData.length % 2 === 0
+        ? (sortedData[sortedData.length / 2 - 1] + sortedData[sortedData.length / 2]) / 2
+        : sortedData[Math.floor(sortedData.length / 2)];
+      const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length;
+
+      return { sum, mean, median, variance };
+    }
+
+    function viewColumnDetails(columnName) {
+      const detailsContent = document.getElementById("detailsContent");
+      detailsContent.innerHTML = ``;
+
+      const summary = calculateSummary(columnData[columnName]);
+      const summaryContent = document.getElementById("summaryContent");
+      summaryContent.innerHTML = `
+        <p>Sum: ${summary.sum}</p>
+        <p>Mean: ${summary.mean.toFixed(2)}</p>
+        <p>Median: ${summary.median}</p>
+        <p>Variance: ${summary.variance.toFixed(2)}</p>
+      `;
+
+      const metadata = columnMetaData[columnName];
+      document.getElementById("totalRows").innerText = `Total Rows: ${metadata.rows}`;
+      document.getElementById("dataType").innerText = `Data Type: ${metadata.dataType}`;
+      document.getElementById("missingValues").innerText = `Missing Values: ${metadata.missing}`;
+    }
+
+    function visualizeColumn() {
+      const visualizationContainer = document.getElementById("visualizationContainer");
+      visualizationContainer.innerHTML = "<p>Column visualization placeholder. Replace with chart/graph.</p>";
+    }
+
+    // Automatically view details of the first column on page load
+    window.onload = () => {
+      viewColumnDetails("Column 1");
+    };
+  </script>
+</body>
+</html>

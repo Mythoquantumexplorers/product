@@ -6,27 +6,35 @@
     <title>Data Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
+
     <!-- Navbar -->
-    <header class="bg-blue-600 text-white shadow-lg">
-        <nav class="container mx-auto flex items-center justify-between p-4">
-            <div class="flex space-x-4">
-                <span class="cursor-pointer hover:text-gray-200">File</span>
-                <span class="cursor-pointer hover:text-gray-200">Edit</span>
-                <span class="cursor-pointer hover:text-gray-200">View</span>
-                <span class="cursor-pointer hover:text-gray-200">Options</span>
-                <span class="cursor-pointer hover:text-gray-200">Help</span>
-            </div>
-        </nav>
+    <header class="bg-gray-800 text-white sticky sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center py-4 px-6">
+            <div class="text-2xl font-bold">Product Name</div>
+            <nav class="space-x-6">
+                <a href="/" class="hover:text-purple-400">Home</a>
+                <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
+                <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
+                <a href="/reports" class="hover:text-purple-400">Reports</a>
+                <a href="/contact" class="hover:text-purple-400">Contact</a>
+                <a href="/login" class="hover:text-purple-400">Login</a>
+            </nav>
+        </div>
     </header>
+
 
     <!-- Main Content -->
     <main class="flex-grow container mx-auto py-8 flex flex-col space-y-6">
 
         <!-- Horizontal Actions -->
         <nav class="bg-white rounded shadow-md p-4">
+
+
             <ul class="flex justify-around">
                 <li>
                     <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
@@ -53,6 +61,9 @@
 
         <!-- Main Panels -->
         <div class="flex-grow flex space-x-6">
+
+            {% include 'sidebar.html' %}
+
 
             <!-- Column Details -->
             <section class="w-1/6 bg-white rounded shadow-md p-6">

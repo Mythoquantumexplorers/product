@@ -20,6 +20,10 @@ def signup():
 def datagrid():
     return render_template('datagrid.html')
 
+@app.route('/selectcolumns')
+def selectcolumns():
+    return render_template('selectcolumns.html')
+
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method=='POST':

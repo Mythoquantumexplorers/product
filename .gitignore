@@ -13,3 +13,7 @@ __pycache__/
 
 # Dependency management
 *.egg-info/
+
+#database related stuff
+instance
+uploads

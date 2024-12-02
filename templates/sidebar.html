@@ -9,7 +9,7 @@
         <li>
             <a href="/" 
                class="flex items-center px-4 py-2 rounded-lg 
-                      {% if active_page == 'home' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                      {% if context['active_page'] == 'home' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
                 <span class="material-icons mr-4">home</span> <!-- Replace with your icon library -->
                 Home Page
             </a>
@@ -17,7 +17,7 @@
         <li>
             <a href="/workspaces" 
                class="flex items-center px-4 py-2 rounded-lg 
-                      {% if active_page == 'workspace' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                      {% if context['active_page'] == 'workspaces' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
                 <span class="material-icons mr-4">work</span>
                 WorkSpaces
             </a>
@@ -25,7 +25,7 @@
         <li>
             <a href="/dashboards" 
                class="flex items-center px-4 py-2 rounded-lg 
-                      {% if active_page == 'dashboards' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                      {% if context['active_page'] == 'dashboards' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
                 <span class="material-icons mr-4">dashboard</span>
                 Dashboards
             </a>

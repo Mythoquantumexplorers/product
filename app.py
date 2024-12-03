@@ -34,7 +34,8 @@ def load_user(user_id):
 # Route for the home page
 @app.route('/')
 def home():
-    return render_template('home.html')
+    print(current_user.is_authenticated)
+    return render_template('home.html',login=current_user.is_authenticated)
 
 # Route for the about page
 @app.route('/about')
@@ -129,13 +130,10 @@ def workspaces():
     }
     return render_template('workspaces.html',context=context)
 
+
 @app.route('/dashboards')
 @login_required
 def dashboards():
-    # dashboard_data = [
-    #     {'title': 'Sales Overview', 'description': 'A comprehensive overview of sales metrics.', 'date': 'Nov 28, 2024'},
-    #     {'title': 'Customer Insights', 'description': 'Analyze customer behavior and demographics.', 'date': 'Nov 25, 2024'},
-    # ]
     if not current_user.is_authenticated:
         print("NOt ok")
     company_id = current_user.id  
@@ -156,7 +154,21 @@ def dashboards():
 @app.route('/reports')
 @login_required
 def reports():
-    return render_template('reports.html',active_page='reports')    
+    if not current_user.is_authenticated:
+        print("NOt ok")
+    company_id = current_user.id  
+    workspaces = Workspace.query.filter_by(company_id=company_id).all() 
+    all_reports = []
+    for w in workspaces:
+        reports_of_w = Report.query.filter_by(workspace_id=w.id).all()
+        for r in reports_of_w:
+            all_reports.append(r)
+    
+    context = {
+        'dashboards':all_reports,
+        'active_page': 'reports'
+    }
+    return render_template('reports.html',context=context)    
 
 
 @app.route('/workspace/<int:workspace_id>')
@@ -190,7 +202,7 @@ def add_workspace():
         # Get form data
         title = request.form.get('title')
         image = request.files.get('image')
-        description = request.files.get('description')
+        description = request.form.get('description')
         datafile = request.files.get('datafile')
 
         print(description)
@@ -308,20 +320,22 @@ def create_chart(workspace_id):
     df = pd.read_excel(file_path)
 
     if request.method == 'POST':
+        print("I'm here")
         # Get user inputs
         x_column = request.form.get('x_column')
         y_column = request.form.get('y_column')
         chart_title = request.form.get('chart_title')
         chart_description = request.form.get('chart_description')
         chart_type = request.form.get('chart_type')  # e.g., line, bar, scatter
-
+        print(x_column,y_column,chart_title,chart_description,chart_type)
         # Validate inputs
         if not chart_type or (chart_type not in ['histogram', 'boxplot', 'pie', 'line', 'bar', 'scatter', 'heatmap', 'pairplot', 'violin', 'kde']):
             flash("Invalid or unsupported chart type.", "error")
             return redirect(request.url)
 
         try:
-            plt.style.use('seaborn')  # Improve visual appearance
+            print("Is it ok till here")
+            # plt.style.use('seaborn')  # Improve visual appearance
             plt.figure(figsize=(10, 6))
             
             # Generate the selected chart
@@ -354,7 +368,7 @@ def create_chart(workspace_id):
             plt.xlabel(x_column)
             plt.ylabel(y_column)
             plt.legend()  # Add legend for clarity
-
+            print("Is it ok till here")
             # Save the chart
             chart_filename = f"chart_{workspace_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.png"
             chart_path = os.path.join(app.config['UPLOAD_FOLDER'], chart_filename)
@@ -374,6 +388,7 @@ def create_chart(workspace_id):
             flash("Chart created successfully!", "success")
             return redirect(url_for('workspace', workspace_id=workspace_id))
         except Exception as e:
+            print(e)
             flash(f"An error occurred while creating the chart: {str(e)}", "error")
             return redirect(request.url)
 
@@ -429,6 +444,52 @@ def view_charts(workspace_id):
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory('uploads', filename)
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
+@app.route('/delete_workspace/<int:workspace_id>', methods=['POST'])
+def delete_workspace(workspace_id):
+    try:
+        # Fetch the workspace by ID
+        workspace = Workspace.query.get(workspace_id)
+        
+        if not workspace:
+            flash('Workspace not found', 'error')
+            return redirect(url_for('workspaces'))  # Redirect to the workspaces page
+
+        # Delete related files
+        for file in workspace.files:
+            db.session.delete(file)
+
+        # Delete related reports
+        for report in workspace.reports:
+            db.session.delete(report)
+
+        # Delete related dashboards
+        for dashboard in workspace.dashboards:
+            db.session.delete(dashboard)
+
+        # Delete related charts
+        related_charts = Chart.query.filter_by(workspace_id=workspace.id).all()
+        for chart in related_charts:
+            db.session.delete(chart)
+
+        # Finally, delete the workspace itself
+        db.session.delete(workspace)
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        flash('Workspace and related data deleted successfully', 'success')
+        return redirect(url_for('workspaces'))  # Redirect to the workspaces page
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting workspace: {str(e)}', 'error')
+        return redirect(url_for('workspaces'))
 
 if __name__ == '__main__':
     app.run(debug=True)

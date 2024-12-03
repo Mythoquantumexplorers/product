@@ -5,20 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data-Driven Solutions</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <!-- Navbar -->
     <header class="bg-gray-800 text-white sticky sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center py-4 px-6">
-            <div class="text-2xl font-bold">Product Name</div>
+            <div class="text-2xl font-bold">Vyusashtra</div>
             <nav class="space-x-6">
                 <a href="/" class="hover:text-purple-400">Home</a>
                 <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
                 <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
                 <a href="/reports" class="hover:text-purple-400">Reports</a>
                 <a href="/contact" class="hover:text-purple-400">Contact</a>
-                <a href="/login" class="hover:text-purple-400">Login</a>
+                {% if login %}
+                    <a href="/logout" class="hover:text-purple-400">Logout</a>
+                {% else %}
+                    <a href="/login" class="hover:text-purple-400">Login</a>
+                {% endif %}
             </nav>
         </div>
     </header>
@@ -26,41 +32,31 @@
     <!-- Hero Section -->
     <section class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-20">
         <div class="container mx-auto text-center">
-            <h1 class="text-4xl font-bold mb-4">Empowering Businesses with Data-Driven Insights</h1>
-            <p class="text-lg mb-8">We transform your data into actionable solutions through R&D, modeling, visualization and reporting.</p>
+            <h1 class="text-4xl font-bold mb-4">Revolutionizing Data Solutions
+            </h1>
+            <p class="text-lg mb-8">A one-stop solution for processing, visualization, reporting, and advanced data analysis.
+            </p>
             <a href="/signup" class="bg-white text-purple-800 px-6 py-3 rounded-lg shadow-lg hover:bg-gray-200 transition">
-                Get Started
+                Register
             </a>
         </div>
     </section>
-
-    <!-- Features Section -->
-    <!-- <section class="py-16 bg-gray-50">
+    
+    <section class="py-16 bg-gray-50">
         <div class="container mx-auto text-center">
             <h2 class="text-3xl font-bold mb-6">Why Choose Us?</h2>
             <p class="text-gray-600 mb-12">Our approach ensures a comprehensive solution tailored to your business needs.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Automatic Data Preparation -->
                 <div class="p-6 bg-white shadow-lg rounded-lg">
                     <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">bar_chart</span>
+                        <span class="material-icons">settings</span>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Data Visualization</h3>
-                    <p class="text-gray-600">Transform raw data into meaningful and interactive visuals for better understanding.</p>
+                    <h3 class="text-xl font-semibold mb-2">Automatic Data Preparation</h3>
+                    <p class="text-gray-600">Automate cleaning, organizing, and preprocessing your data for optimal insights and modeling.</p>
                 </div>
-                <div class="p-6 bg-white shadow-lg rounded-lg">
-                    <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">assessment</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">Comprehensive Reporting</h3>
-                    <p class="text-gray-600">Detailed and precise reports that summarize our findings and solutions.</p>
-                </div>
-                <div class="p-6 bg-white shadow-lg rounded-lg">
-                    <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">model_training</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">Predictive Modeling</h3>
-                    <p class="text-gray-600">State-of-the-art models tailored to your specific business requirements.</p>
-                </div>
+
+                <!-- In-depth R&D -->
                 <div class="p-6 bg-white shadow-lg rounded-lg">
                     <div class="text-purple-600 text-4xl mb-4">
                         <span class="material-icons">science</span>
@@ -68,15 +64,17 @@
                     <h3 class="text-xl font-semibold mb-2">In-depth R&D</h3>
                     <p class="text-gray-600">Cutting-edge research to provide innovative solutions to complex problems.</p>
                 </div>
-            </div>
-        </div>
-    </section> -->
 
-    <section class="py-16 bg-gray-50">
-        <div class="container mx-auto text-center">
-            <h2 class="text-3xl font-bold mb-6">Why Choose Us?</h2>
-            <p class="text-gray-600 mb-12">Our approach ensures a comprehensive solution tailored to your business needs.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Predictive Modeling -->
+                <div class="p-6 bg-white shadow-lg rounded-lg">
+                    <div class="text-purple-600 text-4xl mb-4">
+                        <span class="material-icons">model_training</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Predictive Modeling</h3>
+                    <p class="text-gray-600">State-of-the-art models tailored to your specific business requirements.</p>
+                </div>
+
+
                 <!-- Data Visualization -->
                 <div class="p-6 bg-white shadow-lg rounded-lg">
                     <div class="text-purple-600 text-4xl mb-4">
@@ -95,39 +93,18 @@
                     <p class="text-gray-600">Detailed and precise reports that summarize our findings and solutions.</p>
                 </div>
     
-                <!-- Predictive Modeling -->
-                <div class="p-6 bg-white shadow-lg rounded-lg">
-                    <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">model_training</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">Predictive Modeling</h3>
-                    <p class="text-gray-600">State-of-the-art models tailored to your specific business requirements.</p>
-                </div>
+                
     
-                <!-- In-depth R&D -->
-                <div class="p-6 bg-white shadow-lg rounded-lg">
-                    <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">science</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">In-depth R&D</h3>
-                    <p class="text-gray-600">Cutting-edge research to provide innovative solutions to complex problems.</p>
-                </div>
+                
     
-                <!-- Automatic Data Preparation -->
-                <div class="p-6 bg-white shadow-lg rounded-lg">
-                    <div class="text-purple-600 text-4xl mb-4">
-                        <span class="material-icons">settings</span>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-2">Automatic Data Preparation</h3>
-                    <p class="text-gray-600">Automate cleaning, organizing, and preprocessing your data for optimal insights and modeling.</p>
-                </div>
+                
             </div>
         </div>
     </section>
     
 
     <!-- Testimonials Section -->
-    <section class="bg-gray-800 text-white py-16">
+    <section class="bg-gray-800 text-white py-16 border-blue-500">
         <div class="container mx-auto text-center">
             <h2 class="text-3xl font-bold mb-6">What Our Clients Say</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -148,7 +125,7 @@
     </section>
 
     <!-- Call to Action -->
-    <section class="bg-purple-600 text-white py-16">
+    <!-- <section class="bg-purple-600 text-white py-16">
         <div class="container mx-auto text-center">
             <h2 class="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
             <p class="text-lg mb-8">Contact us today to get started with a free consultation.</p>
@@ -156,7 +133,7 @@
                 Contact Us
             </a>
         </div>
-    </section>
+    </section> -->
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-6">

@@ -1,4 +1,4 @@
-<div class="h-screen w-64 bg-gray-800 text-white flex flex-col">
+<div class="h-screen w-64 bg-gray-800 text-white flex flex-col sticky top-0 left-0">
     <!-- Company Page Header -->
     <div class="px-6 py-4 text-center font-bold text-lg border-b border-purple-600">
         Company Name
@@ -33,7 +33,7 @@
         <li>
             <a href="/reports" 
                class="flex items-center px-4 py-2 rounded-lg 
-                      {% if active_page == 'reports' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
+                      {% if context['active_page'] == 'reports' %}bg-purple-600{% else %}hover:bg-purple-700{% endif %}">
                 <span class="material-icons mr-4">description</span>
                 Reports
             </a>

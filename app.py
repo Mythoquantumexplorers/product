@@ -15,6 +15,8 @@ from markdown import markdown
 
 
 
+
+
 #initialization --
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # Use your database URI
@@ -311,12 +313,16 @@ def create_chart(workspace_id):
     print("reched here")
 
     if request.method == 'POST':
+        print("reched here.....")
+
         # Get user inputs
         x_column = request.form.get('x_column')
         y_column = request.form.get('y_column')
         chart_title = request.form.get('chart_title')
         chart_description = request.form.get('chart_description')
         chart_type = request.form.get('chart_type')  # e.g., line, bar, scatter
+        
+        print(x_column,y_column)
 
         # Validate inputs
         if not chart_type or (chart_type not in ['histogram', 'boxplot', 'pie', 'line', 'bar', 'scatter', 'heatmap', 'pairplot', 'violin', 'kde']):
@@ -324,7 +330,7 @@ def create_chart(workspace_id):
             return redirect(request.url)
 
         try:
-            plt.style.use('seaborn')  # Improve visual appearance
+            # plt.style.use('seaborn')  # Improve visual appearance 
             plt.figure(figsize=(10, 6))
             
             # Generate the selected chart
@@ -360,7 +366,7 @@ def create_chart(workspace_id):
             plt.savefig(chart_path)
             plt.close()
 
-            print("reched here")
+            print("reached here ......")
 
             # Generate AI Report
             prompt = f"""
@@ -376,6 +382,7 @@ def create_chart(workspace_id):
             Identify key trends, patterns, or outliers in the data.
             """
             
+            print(prompt)
 
 
             genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
@@ -417,18 +424,29 @@ def create_chart(workspace_id):
 @app.route('/view_charts/<int:workspace_id>')
 @login_required
 def view_charts(workspace_id):
-    # Fetch the workspace and its associated charts
     workspace = Workspace.query.get_or_404(workspace_id)
+    
+    # Fetch charts associated with the workspace
     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
-
-    # Prepare context for template
+    
+    # Pagination logic
+    page = request.args.get('page', 1, type=int)  # Get the current page number from the query string
+    charts_per_page = 4
+    start_idx = (page - 1) * charts_per_page
+    end_idx = start_idx + charts_per_page
+    paginated_charts = charts[start_idx:end_idx]
+    
+    # Calculate total pages
+    total_pages = (len(charts) + charts_per_page - 1) // charts_per_page
+    
     context = {
         'workspace': workspace,
-        'charts': charts,
+        'charts': paginated_charts,
+        'current_page': page,
+        'total_pages': total_pages,
         'active_page': 'view_charts'
     }
     return render_template('view_charts.html', context=context)
-
 
 
 

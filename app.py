@@ -9,6 +9,9 @@ from models import Company, Workspace, File, Dashboard, Report, Chart
 from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+import google.generativeai as genai
+import seaborn as sns
+from markdown import markdown
 
 
 
@@ -288,8 +291,6 @@ def datagrid(workspace_id):
 
 
 
-
-
 @app.route('/create_chart/<int:workspace_id>', methods=['GET', 'POST'])
 @login_required
 def create_chart(workspace_id):
@@ -306,6 +307,8 @@ def create_chart(workspace_id):
     # Read the Excel file using Pandas
     file_path = excel_file.file_path
     df = pd.read_excel(file_path)
+    
+    print("reched here")
 
     if request.method == 'POST':
         # Get user inputs
@@ -338,16 +341,12 @@ def create_chart(workspace_id):
             elif chart_type == 'pie':
                 plt.pie(df[x_column].value_counts(), labels=df[x_column].value_counts().index, autopct='%1.1f%%')
             elif chart_type == 'heatmap':
-                import seaborn as sns
                 sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap="coolwarm")
             elif chart_type == 'pairplot':
-                import seaborn as sns
                 sns.pairplot(df)
             elif chart_type == 'violin':
-                import seaborn as sns
                 sns.violinplot(x=df[x_column], y=df[y_column])
             elif chart_type == 'kde':
-                import seaborn as sns
                 sns.kdeplot(df[x_column], label=x_column)
 
             plt.title(chart_title or "Chart")
@@ -361,10 +360,35 @@ def create_chart(workspace_id):
             plt.savefig(chart_path)
             plt.close()
 
-            # Save chart details to the database
+            print("reched here")
+
+            # Generate AI Report
+            prompt = f"""
+            Analyze the following data and generate a report:
+            Chart Title: {chart_title or 'Untitled Chart'}
+            Chart Type: {chart_type}
+            X-Column: {x_column}, Y-Column: {y_column}
+
+            Data Overview:
+            X-Column Values: {df[x_column].head(10).tolist()}
+            Y-Column Values: {df[y_column].head(10).tolist()}
+
+            Identify key trends, patterns, or outliers in the data.
+            """
+            
+
+
+            genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            response = model.generate_content(prompt)
+            full_description = markdown(response.text.strip())
+
+            # Log the response for debugging
+            print("Generated Report:", full_description)
+            
             new_chart = Chart(
                 title=chart_title or "Untitled Chart",
-                description=chart_description,
+                description=full_description,
                 image_file_path=chart_path,
                 workspace_id=workspace_id
             )

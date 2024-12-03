@@ -29,14 +29,18 @@
                     {% for workspace in context['workspaces'] %}
                         <!-- Card -->
                         <div class="bg-gray-800 text-white rounded-lg shadow-lg overflow-hidden">
-                            <img src="uploads\Microsoft_Excel-Logo.wine.png" 
-                                 alt="Workspace Image" class="w-full h-40 object-cover">
+                            {#<img src="uploads\Microsoft_Excel-Logo.wine.png" 
+                                alt="Workspace Image" class="w-full h-40 object-cover">
+                            #}
                             <div class="p-4">
                                 <h2 class="text-lg font-semibold mb-2">
                                     <a href="{{ url_for('workspace', workspace_id=workspace.id) }}">
                                         {{ workspace.name }}
                                     </a>
                                 </h2>
+                                <p class="text-md text-gray-400 mb-4">
+                                    Description : {{workspace.description}}
+                                </p>
                                 <p class="text-sm text-gray-400 mb-4">
                                     Created on: {{ workspace.created_on.strftime('%b %d, %Y') }}
                                 </p>
@@ -86,6 +90,16 @@
                 <input type="text" id="title" name="title" 
                     class="w-full border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500 p-3" 
                     placeholder="Enter workspace title" required>
+            </div>
+
+            <!-- Description Field -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Workspace Description
+                </label>
+                <input type="text" id="description" name="description" 
+                    class="w-full border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500 p-3" 
+                    placeholder="Enter workspace description" >
             </div>
 
             <!-- Upload Workspace Image -->

@@ -27,6 +27,7 @@ class Workspace(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.Text, nullable=True)
     image_file_path = db.Column(db.String(255), nullable=False)
 
     # One-to-Many relationship with File
@@ -87,3 +88,22 @@ class Dashboard(db.Model):
 
     def __repr__(self):
         return f"<Dashboard {self.title}>"
+
+
+# 4. Chart Model
+class Chart(db.Model):
+    __tablename__ = 'chart'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    image_file_path = db.Column(db.String(255), nullable=False)
+
+    # Foreign Key
+    workspace_id = db.Column(db.Integer, db.ForeignKey('workspaces.id'), nullable=False)
+
+    def __repr__(self):
+        return f"<Chart {self.title}>"
+
+

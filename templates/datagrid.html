@@ -3,154 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis</title>
+    <title>Data Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Styling for resizable columns */
+        .resizable-header {
+            position: relative;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+        }
+
+        /* Highlight styles */
+        .highlight-column {
+            background-color: #bfdbfe; /* Light blue */
+        }
+
+        .highlight-header {
+            background-color: #3b82f6; /* Blue for header */
+            color: white;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-
-    <!-- Navbar -->
-    <header class="bg-gray-800 text-white sticky sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center py-4 px-6">
-            <div class="text-2xl font-bold">Product Name</div>
-            <nav class="space-x-6">
-                <a href="/" class="hover:text-purple-400">Home</a>
-                <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
-                <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
-                <a href="/reports" class="hover:text-purple-400">Reports</a>
-                <a href="/contact" class="hover:text-purple-400">Contact</a>
-                <a href="/login" class="hover:text-purple-400">Login</a>
-            </nav>
-        </div>
-    </header>
-
-
     <!-- Main Content -->
-    <main class="flex-grow container mx-auto py-8 flex flex-col space-y-6">
+    <div class="min-h-screen flex flex-1">
+        {% include 'sidebar.html' %}
 
-        <!-- Horizontal Actions -->
-        <nav class="bg-white rounded shadow-md p-4">
+        <div class="container mx-auto flex-grow py-1">
+            <header class="ml-4 mr-4 bg-gray-800 text-white sticky top-0 z-50">
+                <div class="w-full flex justify-between items-center py-4 px-6">
+                    <div class="text-2xl font-semibold">Data Grid of {{ context['filename'] }}</div>
+                </div>
+            </header>
 
+            <main class="flex-grow container mx-auto p-4 py-8 flex space-x-6">
 
-            <ul class="flex justify-around">
-                <li>
-                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
-                        Analyze Data
-                    </button>
-                </li>
-                <li>
-                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
-                        Visualization
-                    </button>
-                </li>
-                <li>
-                  <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
-                      Dashboards
-                  </button>
-              </li>
-                <li>
-                    <button class="bg-blue-500 text-white font-medium py-2 px-6 rounded hover:bg-yellow-600 transition">
-                        Modeling
-                    </button>
-                </li>
-            </ul>
-        </nav>
+                <!-- Sidebar -->
+                <aside class="w-1/4 bg-white rounded shadow-md p-4 overflow-y-auto">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Column Statistics</h2>
+                    <div class="data-summary mb-4">
+                        <h3 class="text-lg font-medium">Data Summary</h3>
+                        <p><strong>Filename:</strong> {{ context.filename }}</p>
+                        <p><strong>Total Rows:</strong> {{ context.total_rows }}</p>
+                        <p><strong>Total Columns:</strong> {{ context.total_columns }}</p>
+                        <p><strong>Total Null Values:</strong> {{ context.total_null_values }}</p>
+                    </div>
 
-        <!-- Main Panels -->
-        <div class="flex-grow flex space-x-6">
+                    <div id="stats" class="text-gray-700">
+                        <p>Select a column to view its statistics.</p>
+                    </div>
+                </aside>
 
-            {% include 'sidebar.html' %}
-
-
-            <!-- Column Details -->
-            <section class="w-1/6 bg-white rounded shadow-md p-6">
-                <h2 class="text-xl font-semibold text-red-600 mb-4">Column Features</h2>
-                <p class="text-gray-700 mb-2">Column Name: <span class="font-medium">Column1</span></p>
-                <p class="text-gray-700 mb-2">Data Type: <span class="font-medium">Numeric</span></p>
-                <p class="text-gray-700 mb-2">Mean: <span class="font-medium">200</span></p>
-                <p class="text-gray-700 mb-2">Variance: <span class="font-medium">100</span></p>
-                <p class="text-gray-700 mb-2">Null Values: <span class="font-medium">5</span></p>
-                <p class="text-gray-700">Unique Count: <span class="font-medium">100</span></p>
-            </section>
-
-            <!-- Grid Visualization -->
-            <section class="flex-grow bg-white rounded shadow-md p-6 flex flex-col">
-              <h2 class="text-xl font-semibold text-gray-700 mb-4">Data Grid</h2>
-              <div class="grid grid-cols-7 gap-4 flex-grow">
-                  <!-- Row 1 -->
-                  <div class="bg-blue-200 p-2 rounded text-center font-medium">Column 1</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 2</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 3</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 4</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 5</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 6</div>
-                  <div class="bg-gray-200 p-2 rounded text-center">Column 7</div>
-          
-                  <!-- Remaining Rows -->
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-          
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-                  <div class="bg-gray-200 p-2 rounded"></div>
-              </div>
-          </section>
-          
-
+                <!-- Data Grid -->
+                <section class="flex-grow bg-white rounded shadow-md p-4 overflow-auto">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4">Data Table</h2>
+                    <div class="overflow-x-auto overflow-y-auto border border-gray-300" style="max-height: 500px;">
+                        <table id="data-table" class="min-w-full bg-white">
+                            <thead class="bg-gray-200 sticky top-0">
+                                <tr>
+                                    {% for col in context['columns'] %}
+                                    <th class="border border-gray-300 px-4 py-2 text-left resizable-header" 
+                                        data-column="{{ col }}">
+                                        <div class="text-center items-center justify-between">
+                                            <span>{{ col }}</span>
+                                            <span class="resize-handle"></span>
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in context['rows'] %}
+                                <tr>
+                                    {% for cell in row %}
+                                    <td class="border border-gray-300 px-4 py-2 text-center">{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
         </div>
-    </main>
+    </div>
 
+    <!-- JavaScript for interactivity -->
+    <script>
+        const columnStats = {{ context['column_stats']|tojson }};
+        
+        document.querySelectorAll("th").forEach((header, index) => {
+            header.addEventListener("click", () => {
+                const column = header.getAttribute("data-column");
+                const stats = columnStats[column];
+        
+                // Update stats section
+                const statsContainer = document.getElementById("stats");
+                statsContainer.innerHTML = `
+                    <p class="text-gray-700 mb-2">Column Name: <span class="font-medium">${column}</span></p>
+                    <p class="text-gray-700 mb-2">Null Values: <span class="font-medium">${stats.null_values}</span></p>
+                    <p class="text-gray-700 mb-2">Unique Values: <span class="font-medium">${stats.unique_values}</span></p>
+                    <p class="text-gray-700 mb-2">Max Value: <span class="font-medium">${stats.max_value || 'N/A'}</span></p>
+                    <p class="text-gray-700 mb-2">Min Value: <span class="font-medium">${stats.min_value || 'N/A'}</span></p>
+                    <p class="text-gray-700 mb-2">Sum: <span class="font-medium">${stats.sum || 'N/A'}</span></p>
+                    <p class="text-gray-700">Data Type: <span class="font-medium">${stats.data_type}</span></p>
+                `;
+        
+                // Highlight the current column
+                const table = document.getElementById("data-table");
+                const allHeaders = table.querySelectorAll("th");
+                const allCells = table.querySelectorAll("tbody tr");
+        
+                // Clear highlights from previous selections
+                allHeaders.forEach(h => h.classList.remove("highlight-header"));
+                allCells.forEach(row => {
+                    const cells = row.querySelectorAll("td");
+                    cells.forEach(cell => cell.classList.remove("highlight-column"));
+                });
+        
+                // Apply highlight to the current column
+                header.classList.add("highlight-header");
+                allCells.forEach(row => {
+                    const cells = row.querySelectorAll("td");
+                    cells[index].classList.add("highlight-column");
+                });
+            });
+        });
+        
+    </script>
+
+    <!-- JavaScript for resizable columns -->
+    <script>
+        document.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.addEventListener('mousedown', (event) => {
+                const th = event.target.parentElement.parentElement; // Get the <th> element
+                const startX = event.clientX;
+                const startWidth = th.offsetWidth;
+
+                const mouseMoveHandler = (e) => {
+                    const newWidth = startWidth + (e.clientX - startX);
+                    th.style.width = `${newWidth}px`;
+                };
+
+                const mouseUpHandler = () => {
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+        });
+    </script>
 </body>
 </html>

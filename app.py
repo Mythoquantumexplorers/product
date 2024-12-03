@@ -5,8 +5,12 @@ import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
-from models import Company, Workspace, File, Dashboard, Report
+from models import Company, Workspace, File, Dashboard, Report, Chart
 from datetime import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
 
 #initialization --
 app = Flask(__name__)
@@ -84,7 +88,7 @@ def signup():
         return render_template('signup.html')
 
 @app.route('/datagrid')
-def datagrid():
+def datagrid2():
     return render_template('datagrid.html')
 
 @app.route('/selectcolumns')
@@ -110,6 +114,7 @@ def login():
             flash("Invalid email or password", "error")
             return redirect(url_for('login'))
     return render_template('login.html')
+
 
 @app.route('/workspaces')
 @login_required
@@ -161,11 +166,13 @@ def workspace(workspace_id):
     files = File.query.filter_by(workspace_id=workspace_id).all() 
     reports = Report.query.filter_by(workspace_id=workspace_id).all()
     dashboards = Dashboard.query.filter_by(workspace_id=workspace_id).all()
+    charts = Chart.query.filter_by(workspace_id=workspace_id).all()
     context = {
         'workspace': workspace,
         'active_page': 'workspaces',
         'files': files,
         'reports': reports,
+        'charts' : charts,
         'dashboards': dashboards
     }
     return render_template('workspace.html',context=context)
@@ -183,7 +190,10 @@ def add_workspace():
         # Get form data
         title = request.form.get('title')
         image = request.files.get('image')
+        description = request.files.get('description')
         datafile = request.files.get('datafile')
+
+        print(description)
 
         # Validate files
         if not image or not datafile:
@@ -205,7 +215,8 @@ def add_workspace():
             name=title,
             created_on=datetime.utcnow(),
             company_id=current_user.id,  # Assuming company_id is linked to the logged-in user
-            image_file_path = image_path
+            image_file_path = image_path,
+            description=description
         )
         db.session.add(new_workspace)
         db.session.commit()
@@ -225,6 +236,177 @@ def add_workspace():
         flash(f"An error occurred: {str(e)}", "error")
         return redirect(request.url)
     
+
+@app.route('/datagrid/<int:workspace_id>')
+@login_required
+def datagrid(workspace_id):
+    # Fetch the workspace and associated files
+    workspace = Workspace.query.get_or_404(workspace_id)
+    files = File.query.filter_by(workspace_id=workspace_id).all()
+
+    # Find the first XLS/XLSX file
+    excel_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
+
+    if not excel_file:
+        return "No Excel file found in the workspace.", 404
+
+    # Read the Excel file using Pandas
+    file_path = excel_file.file_path  # Adjust to your file storage logic
+    df = pd.read_excel(file_path)
+
+    # Default statistics
+    total_rows = len(df)
+    total_columns = len(df.columns)
+    total_null_values = int(df.isnull().sum().sum())  # Sum of all null values across all columns
+
+    # Prepare column statistics
+    column_stats = {
+        col: {
+            "null_values": int(df[col].isnull().sum()),  # Convert to Python int
+            "unique_values": int(df[col].nunique()),    # Convert to Python int
+            "max_value": df[col].max().item() if pd.api.types.is_numeric_dtype(df[col]) else None,
+            "min_value": df[col].min().item() if pd.api.types.is_numeric_dtype(df[col]) else None,
+            "sum": df[col].sum().item() if pd.api.types.is_numeric_dtype(df[col]) else None,
+            "data_type": str(df[col].dtype),
+        }
+        for col in df.columns
+    }
+
+    # Pass data to template
+    context = {
+        'workspace': workspace,
+        'columns': df.columns.tolist(),
+        'rows': df.values.tolist(),
+        'column_stats': column_stats,
+        'total_rows': total_rows,
+        'total_columns': total_columns,
+        'total_null_values': total_null_values,
+        'filename': excel_file.filename
+    }
+
+    return render_template('datagrid.html', context=context)
+
+
+
+
+
+@app.route('/create_chart/<int:workspace_id>', methods=['GET', 'POST'])
+@login_required
+def create_chart(workspace_id):
+    # Fetch the workspace
+    workspace = Workspace.query.get_or_404(workspace_id)
+    files = File.query.filter_by(workspace_id=workspace_id).all()
+
+    # Find the first XLS/XLSX file
+    excel_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
+
+    if not excel_file:
+        return "No Excel file found in the workspace.", 404
+
+    # Read the Excel file using Pandas
+    file_path = excel_file.file_path
+    df = pd.read_excel(file_path)
+
+    if request.method == 'POST':
+        # Get user inputs
+        x_column = request.form.get('x_column')
+        y_column = request.form.get('y_column')
+        chart_title = request.form.get('chart_title')
+        chart_description = request.form.get('chart_description')
+        chart_type = request.form.get('chart_type')  # e.g., line, bar, scatter
+
+        # Validate inputs
+        if not chart_type or (chart_type not in ['histogram', 'boxplot', 'pie', 'line', 'bar', 'scatter', 'heatmap', 'pairplot', 'violin', 'kde']):
+            flash("Invalid or unsupported chart type.", "error")
+            return redirect(request.url)
+
+        try:
+            plt.style.use('seaborn')  # Improve visual appearance
+            plt.figure(figsize=(10, 6))
+            
+            # Generate the selected chart
+            if chart_type == 'line':
+                plt.plot(df[x_column], df[y_column], marker='o', label=y_column)
+            elif chart_type == 'bar':
+                plt.bar(df[x_column], df[y_column], label=y_column)
+            elif chart_type == 'scatter':
+                plt.scatter(df[x_column], df[y_column], label=y_column)
+            elif chart_type == 'histogram':
+                plt.hist(df[x_column], bins=10, label=x_column, alpha=0.7)
+            elif chart_type == 'boxplot':
+                df[[x_column, y_column]].boxplot()
+            elif chart_type == 'pie':
+                plt.pie(df[x_column].value_counts(), labels=df[x_column].value_counts().index, autopct='%1.1f%%')
+            elif chart_type == 'heatmap':
+                import seaborn as sns
+                sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap="coolwarm")
+            elif chart_type == 'pairplot':
+                import seaborn as sns
+                sns.pairplot(df)
+            elif chart_type == 'violin':
+                import seaborn as sns
+                sns.violinplot(x=df[x_column], y=df[y_column])
+            elif chart_type == 'kde':
+                import seaborn as sns
+                sns.kdeplot(df[x_column], label=x_column)
+
+            plt.title(chart_title or "Chart")
+            plt.xlabel(x_column)
+            plt.ylabel(y_column)
+            plt.legend()  # Add legend for clarity
+
+            # Save the chart
+            chart_filename = f"chart_{workspace_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.png"
+            chart_path = os.path.join(app.config['UPLOAD_FOLDER'], chart_filename)
+            plt.savefig(chart_path)
+            plt.close()
+
+            # Save chart details to the database
+            new_chart = Chart(
+                title=chart_title or "Untitled Chart",
+                description=chart_description,
+                image_file_path=chart_path,
+                workspace_id=workspace_id
+            )
+            db.session.add(new_chart)
+            db.session.commit()
+
+            flash("Chart created successfully!", "success")
+            return redirect(url_for('workspace', workspace_id=workspace_id))
+        except Exception as e:
+            flash(f"An error occurred while creating the chart: {str(e)}", "error")
+            return redirect(request.url)
+
+    # Prepare context for GET request
+    context = {
+        'workspace': workspace,
+        'columns': df.columns.tolist(),
+        'active_page': 'create_chart',
+        'chart_types': ['line', 'bar', 'scatter', 'histogram', 'boxplot', 'pie', 'heatmap', 'pairplot', 'violin', 'kde']
+    }
+    return render_template('create_chart.html', context=context)
+
+
+
+
+
+@app.route('/view_charts/<int:workspace_id>')
+@login_required
+def view_charts(workspace_id):
+    # Fetch the workspace and its associated charts
+    workspace = Workspace.query.get_or_404(workspace_id)
+    charts = Chart.query.filter_by(workspace_id=workspace_id).all()
+
+    # Prepare context for template
+    context = {
+        'workspace': workspace,
+        'charts': charts,
+        'active_page': 'view_charts'
+    }
+    return render_template('view_charts.html', context=context)
+
+
+
 
 # @app.route('/delete_workspace/<int:workspace_id>', methods=['POST'])
 # def delete_workspace(workspace_id):

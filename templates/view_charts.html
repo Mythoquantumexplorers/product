@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Charts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Main Content -->
+    <div class="container mx-auto p-6">
+        <header class="bg-gray-800 text-white rounded-lg shadow-lg p-6 mb-6 sticky top-0 z-50">
+            <h1 class="text-3xl font-bold">Charts for {{ context.workspace.name }}</h1>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for chart in context.charts %}
+                <div class="bg-white rounded-lg shadow-lg p-4 relative">
+                    <img src="{{ url_for('uploaded_file', filename=chart.image_file_path.split('/')[-1]) }}" 
+                         alt="{{ chart.title }}" 
+                         class="rounded-lg max-w-full h-auto">
+                    
+                    <h2 class="text-lg font-semibold mt-2">{{ chart.title }}</h2>
+                    <p class="text-sm text-gray-600">{{ chart.description }}</p>
+
+                    <!-- Zoom Icon Button -->
+                    <button 
+                        class="absolute top-4 right-4  text-black p-2 rounded-full shadow focus:outline-none"
+                        onclick="zoomChart('{{ url_for('uploaded_file', filename=chart.image_file_path.split('/')[-1]) }}', '{{ chart.title }}')">
+                        <span class="material-icons">zoom_in</span>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="zoomModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl w-full relative">
+            <button 
+                class="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full shadow hover:bg-red-600 focus:outline-none"
+                onclick="closeModal()">
+                <span class="material-icons">close</span>
+            </button>
+            <h2 id="zoomChartTitle" class="text-2xl font-bold mb-4 text-center"></h2>
+            <img id="zoomChartImage" src="" alt="Zoomed Chart" class="rounded-lg max-w-full h-auto mx-auto">
+        </div>
+    </div>
+
+    <script>
+        // Function to open the zoom modal
+        function zoomChart(imageUrl, title) {
+            document.getElementById('zoomChartImage').src = imageUrl;
+            document.getElementById('zoomChartTitle').innerText = title;
+            document.getElementById('zoomModal').classList.remove('hidden');
+        }
+
+        // Function to close the zoom modal
+        function closeModal() {
+            document.getElementById('zoomModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

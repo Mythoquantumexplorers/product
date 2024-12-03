@@ -9,6 +9,11 @@ from models import Company, Workspace, File, Dashboard, Report, Chart
 from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+import google.generativeai as genai
+import seaborn as sns
+from markdown import markdown
+
+
 
 
 
@@ -288,8 +293,6 @@ def datagrid(workspace_id):
 
 
 
-
-
 @app.route('/create_chart/<int:workspace_id>', methods=['GET', 'POST'])
 @login_required
 def create_chart(workspace_id):
@@ -306,14 +309,20 @@ def create_chart(workspace_id):
     # Read the Excel file using Pandas
     file_path = excel_file.file_path
     df = pd.read_excel(file_path)
+    
+    print("reched here")
 
     if request.method == 'POST':
+        print("reched here.....")
+
         # Get user inputs
         x_column = request.form.get('x_column')
         y_column = request.form.get('y_column')
         chart_title = request.form.get('chart_title')
         chart_description = request.form.get('chart_description')
         chart_type = request.form.get('chart_type')  # e.g., line, bar, scatter
+        
+        print(x_column,y_column)
 
         # Validate inputs
         if not chart_type or (chart_type not in ['histogram', 'boxplot', 'pie', 'line', 'bar', 'scatter', 'heatmap', 'pairplot', 'violin', 'kde']):
@@ -321,7 +330,7 @@ def create_chart(workspace_id):
             return redirect(request.url)
 
         try:
-            plt.style.use('seaborn')  # Improve visual appearance
+            # plt.style.use('seaborn')  # Improve visual appearance 
             plt.figure(figsize=(10, 6))
             
             # Generate the selected chart
@@ -338,16 +347,12 @@ def create_chart(workspace_id):
             elif chart_type == 'pie':
                 plt.pie(df[x_column].value_counts(), labels=df[x_column].value_counts().index, autopct='%1.1f%%')
             elif chart_type == 'heatmap':
-                import seaborn as sns
                 sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap="coolwarm")
             elif chart_type == 'pairplot':
-                import seaborn as sns
                 sns.pairplot(df)
             elif chart_type == 'violin':
-                import seaborn as sns
                 sns.violinplot(x=df[x_column], y=df[y_column])
             elif chart_type == 'kde':
-                import seaborn as sns
                 sns.kdeplot(df[x_column], label=x_column)
 
             plt.title(chart_title or "Chart")
@@ -361,10 +366,36 @@ def create_chart(workspace_id):
             plt.savefig(chart_path)
             plt.close()
 
-            # Save chart details to the database
+            print("reached here ......")
+
+            # Generate AI Report
+            prompt = f"""
+            Analyze the following data and generate a report:
+            Chart Title: {chart_title or 'Untitled Chart'}
+            Chart Type: {chart_type}
+            X-Column: {x_column}, Y-Column: {y_column}
+
+            Data Overview:
+            X-Column Values: {df[x_column].head(10).tolist()}
+            Y-Column Values: {df[y_column].head(10).tolist()}
+
+            Identify key trends, patterns, or outliers in the data.
+            """
+            
+            print(prompt)
+
+
+            genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            response = model.generate_content(prompt)
+            full_description = markdown(response.text.strip())
+
+            # Log the response for debugging
+            print("Generated Report:", full_description)
+            
             new_chart = Chart(
                 title=chart_title or "Untitled Chart",
-                description=chart_description,
+                description=full_description,
                 image_file_path=chart_path,
                 workspace_id=workspace_id
             )
@@ -393,18 +424,29 @@ def create_chart(workspace_id):
 @app.route('/view_charts/<int:workspace_id>')
 @login_required
 def view_charts(workspace_id):
-    # Fetch the workspace and its associated charts
     workspace = Workspace.query.get_or_404(workspace_id)
+    
+    # Fetch charts associated with the workspace
     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
-
-    # Prepare context for template
+    
+    # Pagination logic
+    page = request.args.get('page', 1, type=int)  # Get the current page number from the query string
+    charts_per_page = 4
+    start_idx = (page - 1) * charts_per_page
+    end_idx = start_idx + charts_per_page
+    paginated_charts = charts[start_idx:end_idx]
+    
+    # Calculate total pages
+    total_pages = (len(charts) + charts_per_page - 1) // charts_per_page
+    
     context = {
         'workspace': workspace,
-        'charts': charts,
+        'charts': paginated_charts,
+        'current_page': page,
+        'total_pages': total_pages,
         'active_page': 'view_charts'
     }
     return render_template('view_charts.html', context=context)
-
 
 
 

@@ -1,6 +1,5 @@
 # Virtual environments
-product_env/
-.env/
+venv/
 
 # Python cache files
 __pycache__/
@@ -17,3 +16,5 @@ __pycache__/
 #database related stuff
 instance
 uploads
+
+

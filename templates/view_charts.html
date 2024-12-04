@@ -32,11 +32,12 @@
                 {% for chart in context.charts %}
                     <div class="bg-white rounded-lg shadow-lg p-4 relative">
                         <h2 class="text-lg font-semibold mt-2">{{ chart.title }}</h2>
-                        <img src="{{ url_for('uploaded_file', filename=chart.image_file_path.split('/')[-1]) }}" 
+                        <!-- <h3>{{ chart.image_file_path }}</h3> -->
+                        <img src="{{ '/' + chart.image_file_path }}"
                              alt="{{ chart.title }}" 
-                             class="rounded-lg max-w-full h-auto">
+                             class="rounded-lg max-w-full h-auto" />
                         
-                             <div class="text-sm text-gray-600" id="description-{{ chart.id }}">
+                            <div class="text-sm text-gray-600" id="description-{{ chart.id }}">
                                 {{ chart.description[:200]|safe }}...
                                 <!-- View More Button -->
                                 <button 
@@ -48,10 +49,11 @@
                             </div>
                             
                         
-                        <!-- Zoom Icon Button -->
+                        <!-- Zoom Icon Button --> 
                         <button 
                             class="absolute top-4 right-4 text-black p-2 rounded-full shadow focus:outline-none"
-                            onclick="zoomChart('{{ url_for('uploaded_file', filename=chart.image_file_path.split('/')[-1]) }}', '{{ chart.title }}')">
+                            onclick="zoomChart('{{ url_for('uploaded_file', filename=chart.image_file_path.split('/')[-1]) }}', '{{ chart.title }}')"
+                        >
                             <span class="material-icons">zoom_in</span>
                         </button>
                     </div>
@@ -109,6 +111,7 @@
     <script>
         // Function to open the zoom modal
         function zoomChart(imageUrl, title) {
+            console.log("This is the url:",imageUrl);
             document.getElementById('zoomChartImage').src = imageUrl;
             document.getElementById('zoomChartTitle').innerText = title;
             document.getElementById('zoomModal').classList.remove('hidden');

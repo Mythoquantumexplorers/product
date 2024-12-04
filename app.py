@@ -91,7 +91,7 @@ def signup():
             flash(f"An error occurred: {str(e)}", "error")
             return redirect('/signup')
     else:
-        return render_template('signup.html')
+        return render_template('signup.html',login=current_user.is_authenticated)
 
 @app.route('/datagrid')
 def datagrid2():
@@ -119,7 +119,7 @@ def login():
         else:
             flash("Invalid email or password", "error")
             return redirect(url_for('login'))
-    return render_template('login.html')
+    return render_template('login.html',login=current_user.is_authenticated)
 
 
 @app.route('/workspaces')
@@ -465,24 +465,6 @@ def view_charts(workspace_id):
     }
     return render_template('view_charts.html', context=context)
 
-
-
-# @app.route('/delete_workspace/<int:workspace_id>', methods=['POST'])
-# def delete_workspace(workspace_id):
-#     try:
-#         # Query the workspace to delete
-#         workspace = Workspace.query.get_or_404(workspace_id)
-#         print(workspace)
-#         # Delete the workspace
-#         db.session.delete(workspace)
-#         db.session.commit()
-#         flash('Workspace deleted successfully!', 'success')
-#     except Exception as e:
-#         print("Some error occured")
-#         db.session.rollback()
-#         flash(f'Error occurred while deleting workspace: {str(e)}', 'danger')
-#         print(str(e))
-#     return redirect(url_for('workspaces')) 
 
 # Static route for 'uploads'
 @app.route('/uploads/<path:filename>')

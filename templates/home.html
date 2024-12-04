@@ -10,24 +10,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Navbar -->
-    <header class="bg-gray-800 text-white sticky sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center py-4 px-6">
-            <div class="text-2xl font-bold">Vyusashtra</div>
-            <nav class="space-x-6">
-                <a href="/" class="hover:text-purple-400">Home</a>
-                <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
-                <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
-                <a href="/reports" class="hover:text-purple-400">Reports</a>
-                <a href="/contact" class="hover:text-purple-400">Contact</a>
-                {% if login %}
-                    <a href="/logout" class="hover:text-purple-400">Logout</a>
-                {% else %}
-                    <a href="/login" class="hover:text-purple-400">Login</a>
-                {% endif %}
-            </nav>
-        </div>
-    </header>
+    {% include 'navbar.html' %}
 
     <!-- Hero Section -->
     <section class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-20">

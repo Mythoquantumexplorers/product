@@ -320,9 +320,12 @@ def create_chart(workspace_id):
 
     # Read the Excel file using Pandas
     file_path = excel_file.file_path
+    
     df = pd.read_excel(file_path)
     
-    print("reched here")
+    file_name = files[0].filename
+    
+    print(file_name)
 
     if request.method == 'POST':
         print("I'm here")
@@ -396,7 +399,7 @@ def create_chart(workspace_id):
             X-Column Values: {df[x_column].head(10).tolist()}
             Y-Column Values: {df[y_column].head(10).tolist()}
 
-            Identify key trends, patterns, or outliers in the data.
+            Identify key trends, patterns, or outliers in the data and {chart_description}.
             """
             
             print(prompt)
@@ -420,15 +423,35 @@ def create_chart(workspace_id):
             db.session.commit()
 
             flash("Chart created successfully!", "success")
-            return redirect(url_for('workspace', workspace_id=workspace_id))
+            context = {
+                'workspace': workspace,
+                'file_name': file_name,
+                'columns': df.columns.tolist(),
+                'active_page': 'create_chart',
+                'chart_types': ['line', 'bar', 'scatter', 'histogram', 'boxplot', 'pie', 'heatmap', 'pairplot', 'violin', 'kde'],
+                'chart': new_chart if 'new_chart' in locals() else None  # Add fallback
+
+            }
+            return render_template('create_chart.html', context=context)
+                    
         except Exception as e:
             print(e)
             flash(f"An error occurred while creating the chart: {str(e)}", "error")
-            return redirect(request.url)
+            context = {
+                'workspace': workspace,
+                'file_name': file_name,
+                'columns': df.columns.tolist(),
+                'active_page': 'create_chart',
+                'chart_types': ['line', 'bar', 'scatter', 'histogram', 'boxplot', 'pie', 'heatmap', 'pairplot', 'violin', 'kde'],
+                'chart': None  # Ensure chart is set explicitly
+
+            }
+            return render_template('create_chart.html', context=context)
 
     # Prepare context for GET request
     context = {
         'workspace': workspace,
+        'file_name': file_name,
         'columns': df.columns.tolist(),
         'active_page': 'create_chart',
         'chart_types': ['line', 'bar', 'scatter', 'histogram', 'boxplot', 'pie', 'heatmap', 'pairplot', 'violin', 'kde']
@@ -517,6 +540,35 @@ def delete_workspace(workspace_id):
         db.session.rollback()
         flash(f'Error deleting workspace: {str(e)}', 'error')
         return redirect(url_for('workspaces'))
+
+
+
+@app.route('/delete_chart/<int:chart_id>', methods=['POST'])
+@login_required
+def delete_chart(chart_id):
+
+    chart = Chart.query.get_or_404(chart_id)
+    workspace_id=chart.workspace_id
+    # Check if the user has permission to delete this chart
+    workspace = Workspace.query.get_or_404(chart.workspace_id)
+    if not current_user.is_authenticated:
+        flash("You don't have permission to delete this chart.", "error")
+        return redirect(url_for('workspace_details', workspace_id=workspace.id))
+
+    # Delete the chart image file if it exists
+    if os.path.exists(chart.image_file_path):
+        os.remove(chart.image_file_path)
+
+    # Delete the chart from the database
+    db.session.delete(chart)
+    db.session.commit()
+    
+    flash("Chart deleted successfully.", "success")
+    return redirect(url_for('workspace', workspace_id=workspace_id))
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

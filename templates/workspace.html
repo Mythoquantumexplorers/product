@@ -128,13 +128,21 @@
                             {% for chart in context['charts'] %}
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="py-3 px-4">{{ chart.title }}</td>
-                                    <td class="py-3 px-4">
-                                        <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">View</button>
-                                        <button class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">Delete</button>
+                                    <td class="py-3 px-4 flex space-x-2">
+                                        <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">
+                                            View
+                                        </button>
+                                        <form method="POST" action="{{ url_for('delete_chart', chart_id=chart.id) }}" 
+                                              onsubmit="return confirm('Are you sure you want to delete this chart?');">
+                                            <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">
+                                                Delete
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
+                        
                     </table>
                 </div>
                 <div class="mt-6 flex justify-between items-center">

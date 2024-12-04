@@ -379,6 +379,7 @@ def create_chart(workspace_id):
             # Save the chart
             chart_filename = f"chart_{workspace_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.png"
             chart_path = os.path.join(app.config['UPLOAD_FOLDER'], chart_filename)
+            
             plt.savefig(chart_path)
             plt.close()
 

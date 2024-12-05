@@ -157,6 +157,53 @@
                         View Charts
                     </a>
                 </div>
+
+
+
+    <div class="mt-8">
+    <h3 class="text-xl font-bold text-gray-700 mb-4">Financial Models</h3>
+    <button onclick="showFinancialModelForm()" 
+            class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700">
+        Apply Financial Model
+    </button>
+
+        <!-- Financial Model Form -->
+        <div id="financialModelForm" class="hidden mt-4 p-4 border rounded bg-gray-50">
+            <form method="POST" action="/apply_model">
+                <div class="mb-4">
+                    <label for="selected_file" class="block text-sm font-medium text-gray-700 mb-2">Select Data File:</label>
+                    <select name="selected_file" id="selected_file" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none">
+                        {% for file in context['files'] %}
+                            <option value="{{ file.filename }}">{{ file.filename }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="financial_model" class="block text-sm font-medium text-gray-700 mb-2">Select Financial Model:</label>
+                    <select name="financial_model" id="financial_model" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none">
+                        <option value="" disabled selected>Choose a model</option>
+                        <option value="Customer Segmentation">Customer Segmentation</option>
+                        <option value="Risk Assessment">Risk Assessment</option>
+                        <option value="Portfolio Optimization">Portfolio Optimization</option>
+                    </select>
+                </div>
+
+
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-500">
+                        Apply Model
+                    </button>
+                </div>
+
+                
+            </form>
+        </div>
+    </div>
+
                 
             <!-- Modal Popup -->
             <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
@@ -183,6 +230,7 @@
         </main>
     </div>
     <script>
+<<<<<<< HEAD
         const modal = document.getElementById('modal');
 
         function openModal() {
@@ -195,5 +243,15 @@
 
 
     </script>
+=======
+        // Function to show the financial model form when the button is clicked
+        function showFinancialModelForm() {
+            const form = document.getElementById('financialModelForm');
+            form.classList.toggle('hidden');
+        }
+    </script>
+    
+
+>>>>>>> 8e5d549 (added modelling)
 </body>
 </html>

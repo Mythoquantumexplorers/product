@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack/dist/gridstack.all.min.js"></script>
+    <style>
+        .chart-thumbnail {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            background-color: #f9fafb;
+            cursor: grab;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col h-screen">
+        <header class="bg-purple-700 text-white p-4 text-center">
+            <h1 class="text-2xl font-bold">Create Your Dashboard</h1>
+        </header>
+        <div class="flex flex-1">
+            <aside class="w-1/3 bg-white border-r p-4 overflow-y-auto" style="max-height: calc(100vh - 64px);">
+                <h2 class="text-xl font-semibold mb-4">Available Charts</h2>
+                <div class="grid gap-4">
+                    {% for chart in charts %}
+                    <div class="chart-thumbnail" data-id="{{ chart.id }}" draggable="true">
+                        <img src="{{ '/' + chart.image_file_path }}" alt="{{ chart.title }}" class="w-full">
+                        <p class="text-center mt-2">{{ chart.title }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </aside>
+            <main class="flex-1 p-4">
+                <h2 class="text-xl font-semibold mb-4">Dashboard Builder</h2>
+                <div id="dashboard_grid" class="grid-stack bg-white p-4 border rounded-lg" style="height: 500px;"></div>
+
+                <form id="dashboard-form" class="mt-4" method="POST">
+                    <input type="text" name="title" placeholder="Dashboard Title" class="border p-2 rounded w-full mb-2" required>
+                    <textarea name="description" placeholder="Dashboard Description" class="border p-2 rounded w-full mb-2"></textarea>
+                    <input type="hidden" name="layout_data" id="layout-data">
+                    <button type="submit" class="bg-purple-700 text-white px-4 py-2 rounded">Save Dashboard</button>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize GridStack
+            const grid = GridStack.init({
+                cellHeight: 100,
+                disableOneColumnMode: true,
+                resizable: { handles: 'all' }
+            });
+
+            const gridElement = document.getElementById('dashboard_grid');
+
+            // Enable dragging charts into the dashboard
+            document.querySelectorAll('.chart-thumbnail').forEach(chart => {
+                chart.addEventListener('dragstart', (event) => {
+                    event.dataTransfer.setData('chart-id', chart.dataset.id);
+                    event.dataTransfer.setData('chart-html', chart.outerHTML);
+                });
+            });
+
+            gridElement.addEventListener('dragover', (event) => {
+                event.preventDefault();
+            });
+
+            gridElement.addEventListener('drop', (event) => {
+                event.preventDefault();
+
+                // Get the chart ID and HTML content
+                const chartHtml = event.dataTransfer.getData('chart-html');
+                const chartId = event.dataTransfer.getData('chart-id');
+                if (!chartHtml || !chartId) return;
+
+                // Create a new DOM element for the widget
+                const newWidget = document.createElement('div');
+                newWidget.innerHTML = `
+                    <div class="grid-stack-item-content">
+                        ${chartHtml}
+                    </div>
+                `;
+
+                // Add widget to the grid with default dimensions
+                grid.addWidget(newWidget, {
+                    x: 0, // Default X position
+                    y: 0, // Default Y position
+                    width: 3, // Default width (3 grid units)
+                    height: 2 // Default height (2 grid units)
+                });
+            });
+
+
+            // Save layout data on form submit
+            document.getElementById('dashboard-form').addEventListener('submit', () => {
+                document.getElementById('layout-data').value = JSON.stringify(grid.save());
+            });
+        });
+
+    </script>
+</body>
+</html>

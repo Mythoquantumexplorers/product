@@ -1,5 +1,5 @@
 #imports --
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, jsonify
 from models import db
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -11,12 +11,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import google.generativeai as genai
 import seaborn as sns
+from faker import Faker
+import random
 from markdown import markdown
 
 
 
 
-
+fake = Faker()
 #initialization --
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # Use your database URI
@@ -516,6 +518,87 @@ def delete_workspace(workspace_id):
         db.session.rollback()
         flash(f'Error deleting workspace: {str(e)}', 'error')
         return redirect(url_for('workspaces'))
+    
+
+
+# @app.route('/workspace/<int:workspace_id>/dashboard/create', methods=['GET', 'POST'])
+# def create_dashboard(workspace_id):
+#     if request.method == 'POST':
+#         # Get dashboard metadata
+#         title = request.form.get('title')
+#         description = request.form.get('description', '')
+#         layout_data = request.form.get('layout_data')  # JSON layout data sent from the frontend
+
+#         # Save layout data and metadata to an HTML file
+#         dashboard_file = secure_filename(f"{title.replace(' ', '_').lower()}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.html")
+#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], dashboard_file)
+
+#         with open(file_path, 'w') as f:
+#             f.write(render_template('dashboard_template.html', layout_data=layout_data, title=title))
+
+#         # Save dashboard metadata
+#         dashboard = Dashboard(
+#             title=title,
+#             description=description,
+#             file_path=file_path,
+#             workspace_id=current_user.workspace_id
+#         )
+#         db.session.add(dashboard)
+
+#         file_entry = File(
+#             filename=dashboard_file,
+#             file_path=file_path,
+#             workspace_id=current_user.workspace_id
+#         )
+#         db.session.add(file_entry)
+#         db.session.commit()
+
+#         flash('Dashboard created successfully!', 'success')
+#         return redirect(url_for('create_dashboard'))
+
+#     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
+#     return render_template('dashboard_create.html', charts=charts)
+
+
+@app.route('/workspace/<int:workspace_id>/dashboard/create', methods=['GET', 'POST'])
+def create_dashboard(workspace_id):
+    # Fetch all charts for the workspace
+    charts = Chart.query.filter_by(workspace_id=workspace_id).all()
+
+    # Fetch existing dashboard data, if any
+    existing_dashboard = File.query.filter_by(workspace_id=workspace_id, filename='dashboard.json').first()
+    layout_data = None
+    if existing_dashboard:
+        with open(existing_dashboard.file_path, 'r') as f:
+            layout_data = f.read()
+
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        layout_data = request.form['layout_data']
+
+        # Save dashboard layout to a file
+        dashboard_path = os.path.join('uploads', f'dashboard_{workspace_id}.json')
+        with open(dashboard_path, 'w') as f:
+            f.write(layout_data)
+
+        # Update File table entry
+        file_entry = File.query.filter_by(workspace_id=workspace_id, filename='dashboard.json').first()
+        if not file_entry:
+            file_entry = File(
+                filename='dashboard.json',
+                file_path=dashboard_path,
+                workspace_id=workspace_id
+            )
+            db.session.add(file_entry)
+        else:
+            file_entry.file_path = dashboard_path
+
+        db.session.commit()
+        return redirect(url_for('create_dashboard', workspace_id=workspace_id))
+
+    return render_template('dashboard_create.html', charts=charts, layout_data=layout_data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

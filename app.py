@@ -204,6 +204,7 @@ def logout():
     return redirect('/login')
 
 @app.route('/add_workspace', methods=['GET','POST'])
+@login_required
 def add_workspace():
     try:
         # Get form data
@@ -249,7 +250,7 @@ def add_workspace():
         db.session.commit()
 
         flash("Workspace created successfully!", "success")
-        return redirect(url_for('workspaces', workspace_id=new_workspace.id))
+        return redirect(url_for('prepare_data', workspace_id=new_workspace.id))
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "error")
@@ -503,6 +504,7 @@ def contact():
 
 
 @app.route('/delete_workspace/<int:workspace_id>', methods=['POST'])
+@login_required
 def delete_workspace(workspace_id):
     try:
         # Fetch the workspace by ID
@@ -545,46 +547,8 @@ def delete_workspace(workspace_id):
     
 
 
-# @app.route('/workspace/<int:workspace_id>/dashboard/create', methods=['GET', 'POST'])
-# def create_dashboard(workspace_id):
-#     if request.method == 'POST':
-#         # Get dashboard metadata
-#         title = request.form.get('title')
-#         description = request.form.get('description', '')
-#         layout_data = request.form.get('layout_data')  # JSON layout data sent from the frontend
-
-#         # Save layout data and metadata to an HTML file
-#         dashboard_file = secure_filename(f"{title.replace(' ', '_').lower()}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.html")
-#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], dashboard_file)
-
-#         with open(file_path, 'w') as f:
-#             f.write(render_template('dashboard_template.html', layout_data=layout_data, title=title))
-
-#         # Save dashboard metadata
-#         dashboard = Dashboard(
-#             title=title,
-#             description=description,
-#             file_path=file_path,
-#             workspace_id=current_user.workspace_id
-#         )
-#         db.session.add(dashboard)
-
-#         file_entry = File(
-#             filename=dashboard_file,
-#             file_path=file_path,
-#             workspace_id=current_user.workspace_id
-#         )
-#         db.session.add(file_entry)
-#         db.session.commit()
-
-#         flash('Dashboard created successfully!', 'success')
-#         return redirect(url_for('create_dashboard'))
-
-#     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
-#     return render_template('dashboard_create.html', charts=charts)
-
-
 @app.route('/workspace/<int:workspace_id>/dashboard/create', methods=['GET', 'POST'])
+@login_required
 def create_dashboard(workspace_id):
     # Fetch all charts for the workspace
     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
@@ -651,6 +615,76 @@ def delete_chart(chart_id):
 
 
 
+
+@app.route('/workspace/<int:workspace_id>/prepare', methods=['GET', 'POST'])
+@login_required
+def prepare_data(workspace_id):
+    try:
+        # Fetch the workspace
+        workspace = Workspace.query.get_or_404(workspace_id)
+        files = File.query.filter_by(workspace_id=workspace_id).all()
+        data_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
+
+        if not data_file:
+            return "No Excel file found in the workspace.", 404
+
+        file_path = data_file.file_path
+        data = pd.read_excel(file_path)
+        selected_column = None
+        statistics = None
+
+        if request.method == 'POST':
+            if 'columns' in request.form:  # Form 1: Column Selection
+                selected_columns = request.form.getlist('columns')
+                if selected_columns:
+                    data = data[selected_columns]
+                    flash("Columns selected successfully!", "success")
+            elif 'selected_column' in request.form:  # Form 2: Column Details
+                selected_column = request.form.get('selected_column')
+                statistics = {}
+
+                # Check if the selected column is numeric
+                if pd.api.types.is_numeric_dtype(data[selected_column]):
+                    statistics["mean"] = data[selected_column].mean()
+                    statistics["median"] = data[selected_column].median()
+                    statistics["std"] = data[selected_column].std()
+                else:
+                    # Set statistics to "N/A" for non-numeric columns
+                    statistics["mean"] = "N/A"
+                    statistics["median"] = "N/A"
+                    statistics["std"] = "N/A"
+
+                # Always calculate the null count
+                statistics["null_count"] = data[selected_column].isnull().sum()
+
+            elif 'column_to_modify' in request.form:  # Handle NULL Values
+                column = request.form.get('column_to_modify')
+                null_action = request.form.get('null_action')
+                if null_action == 'drop':
+                    data = data.dropna(subset=[column])
+                elif null_action == 'replace':
+                    replacement_value = request.form.get('replace_value')
+                    data[column].fillna(replacement_value, inplace=True)
+                flash("NULL handling applied successfully!", "success")
+            
+            # Save modified file
+            modified_file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{data_file.filename}")
+            data.to_excel(modified_file_path, index=False)
+            data_file.file_path = modified_file_path
+            db.session.commit()
+            flash("Dataset modified successfully!", "success")
+        return render_template(
+            'prepare_data.html',
+            workspace=workspace,
+            columns=data.columns,
+            selected_column=selected_column,
+            statistics=statistics
+        )
+
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        print("Error is:",e)
+        return redirect(url_for('workspaces'))
 
 
 if __name__ == '__main__':

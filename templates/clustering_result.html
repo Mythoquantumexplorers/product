@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clustering Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-purple-800 text-white fixed h-full">
+            {% include 'sidebar.html' %}
+        </div> 
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-grow py-8">
+            <div class="bg-white rounded shadow-md p-8">
+                <h2 class="text-3xl font-semibold mb-4 text-purple-800">Clustering Results</h2>
+                <h3 class="text-xl font-semibold mb-4">Clustered Data:</h3>
+                <div class="mb-4">
+                    {{ result|safe }}
+                </div>
+
+                <!-- Scatter Plot -->
+                {% if scatter_plot_path %}
+                    <h3 class="text-xl font-semibold mb-4">Scatter Plot</h3>
+                    <img src="{{ scatter_plot_path }}" alt="Scatter Plot" class="mb-4">
+                {% endif %}
+
+                <!-- Pairplot -->
+                {% if pairplot_path %}
+                    <h3 class="text-xl font-semibold mb-4">Pairplot</h3>
+                    <img src="{{ pairplot_path }}" alt="Pairplot" class="mb-4">
+                {% endif %}
+
+                <!-- Dendrogram -->
+                {% if dendrogram_path %}
+                    <h3 class="text-xl font-semibold mb-4">Dendrogram (Agglomerative Clustering)</h3>
+                    <img src="{{ dendrogram_path }}" alt="Dendrogram" class="mb-4">
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prepare Data - {{ workspace.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray max-w-7xl mx-auto p-6">
+    <div class="flex flex-row"></div>
+        <h1 class="text-2xl font-bold mb-6">Prepare Data for Workspace: {{ workspace.name }}</h1>
+        <a href="/workspace/{{workspace.id}}" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-md transition"> Back to Workspace </a>
+    </div>
+    <!-- Form 1: Column Selection -->
+    <form method="POST" class="space-y-6 bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold">Select Columns to Import</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for column in columns %}
+                <label class="flex items-center">
+                    <input type="checkbox" name="columns" value="{{ column }}" class="mr-2">
+                    {{ column }}
+                </label>
+            {% endfor %}
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-md transition">
+                Submit Selection
+            </button>
+        </div>
+    </form>
+
+    <!-- Form 2: Column Details -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <!-- Left Part: Column List -->
+        <div class="col-span-1 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Columns</h2>
+            <ul class="space-y-2">
+                {% for column in columns %}
+                    <li>
+                        <form method="POST" action="{{ url_for('prepare_data', workspace_id=workspace.id) }}">
+                            <input type="hidden" name="selected_column" value="{{ column }}">
+                            <button type="submit" class="text-blue-600 hover:underline">
+                                {{ column }}
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Right Part: Column Statistics and NULL Handling -->
+        <div class="col-span-2 bg-white p-6 rounded-lg shadow-md">
+            {% if selected_column %}
+                <h2 class="text-xl font-semibold mb-4">Details for Column: {{ selected_column }}</h2>
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium">Statistics</h3>
+                    <ul class="list-disc pl-6">
+                        <li>Mean: {{ statistics.mean }}</li>
+                        <li>Median: {{ statistics.median }}</li>
+                        <li>Standard Deviation: {{ statistics.std }}</li>
+                        <li>Null Count: {{ statistics.null_count }}</li>
+                    </ul>
+                </div>
+                <form method="POST" action="{{ url_for('prepare_data', workspace_id=workspace.id) }}">
+                    <input type="hidden" name="column_to_modify" value="{{ selected_column }}">
+                    <h3 class="text-lg font-medium mb-2">Handle Missing Values</h3>
+                    <div class="space-y-2">
+                        <label>
+                            <input type="radio" name="null_action" value="none" checked>
+                            Do Nothing
+                        </label>
+                        <label>
+                            <input type="radio" name="null_action" value="drop">
+                            Drop Rows with NULL
+                        </label>
+                        <label>
+                            <input type="radio" name="null_action" value="replace">
+                            Replace NULL with:
+                            <input type="text" name="replace_value" class="border p-1 rounded">
+                        </label>
+                    </div>
+                    <div class="flex justify-end mt-4">
+                        <button type="submit" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-md transition">
+                            Apply Changes
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <p class="text-gray-600">Select a column to view details and handle NULL values.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

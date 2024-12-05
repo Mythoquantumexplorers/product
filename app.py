@@ -1,5 +1,7 @@
 #imports --
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
+
 from models import db
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -8,12 +10,19 @@ from flask_login import LoginManager, login_user, login_required, current_user, 
 from models import Company, Workspace, File, Dashboard, Report, Chart
 from datetime import datetime
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Avoid Tkinter backend for Flask
+
 import matplotlib.pyplot as plt
 import google.generativeai as genai
 import seaborn as sns
 from faker import Faker
 import random
 from markdown import markdown
+from sklearn.cluster import DBSCAN
+
+
+
 
 
 
@@ -612,6 +621,142 @@ def delete_chart(chart_id):
     
     flash("Chart deleted successfully.", "success")
     return redirect(url_for('workspace', workspace_id=workspace_id))
+
+
+
+@app.route('/apply_model', methods=['POST'])
+def apply_model():
+    selected_file = request.form['selected_file']
+    financial_model = request.form['financial_model']
+    
+    print("The selected file here is: ")
+    print(selected_file)
+    
+    if financial_model == "Customer Segmentation":
+        return redirect(url_for('clustering_form', selected_file=selected_file))
+    
+    # Handle other financial models (Risk Assessment, Portfolio Optimization, etc.)
+    # For now, we can just return a message.
+    return f"Applying model {financial_model} to file {selected_file}"
+
+@app.route('/clustering_form')
+def clustering_form():
+    selected_file = request.args.get('selected_file')
+    
+    print("The selected file in the clustering here is: ")
+    print(selected_file)
+    
+    context = {
+        'active_page': 'workspace',  # Set the active page or any other data you need
+    }
+
+    
+    if not selected_file:
+        return "File not selected", 400
+    
+    # Load the Excel file (adjust the path as necessary)
+    df = pd.read_excel(f'./uploads/{selected_file}')
+    
+    # Get the list of columns in the file (you can also filter for numerical columns if needed)
+    columns = df.select_dtypes(include=['number']).columns.tolist()
+    
+    context = {
+        'active_page': 'financialmmodel',  # Set the active page or any other data you need
+    }
+
+
+    return render_template('clustering_form.html', selected_file=selected_file, columns=columns, context=context)
+
+
+# Ensure the directory for saving plots exists
+plot_dir = 'static/charts'
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+
+
+from flask import render_template, request
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import DBSCAN, AgglomerativeClustering
+from sklearn.preprocessing import StandardScaler
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+@app.route('/clustering_results', methods=['POST'])
+def clustering_results():
+    selected_file = request.form.get('selected_file')
+    columns = request.form.getlist('columns')
+    eps = float(request.form['eps'])
+    min_samples = int(request.form['min_samples'])
+    clustering_algo = request.form.get('clustering_algo')  # Get selected clustering algorithm
+
+    # Load the file and select the specified columns
+    df = pd.read_excel(f'./uploads/{selected_file}')
+    X = df[columns].values  # Selecting only the chosen columns for clustering
+    X_scaled = StandardScaler().fit_transform(X)  # Scaling the data for better clustering results
+
+    # Perform selected clustering algorithm
+    if clustering_algo == 'DBSCAN':
+        model = DBSCAN(eps=eps, min_samples=min_samples)
+        clusters = model.fit_predict(X_scaled)
+    elif clustering_algo == 'Agglomerative':
+        model = AgglomerativeClustering(n_clusters=None, distance_threshold=eps)
+        clusters = model.fit_predict(X_scaled)
+    else:
+        clusters = []  # Handle default case or unknown algorithm
+
+    # Add the cluster results to the dataframe
+    df['Cluster'] = clusters
+
+    # Optional: Save the result to a new file
+    result_file = f'clustering_result_{selected_file}'
+    df.to_excel(result_file)
+
+    # Visualization: Scatter Plot with different colors for clusters
+    scatter_plot_path = f'static/charts/scatter_plot_{selected_file}.png'
+    plt.figure(figsize=(8, 6))
+    sns.scatterplot(x=df[columns[0]], y=df[columns[1]], hue=df['Cluster'], palette='tab10', marker='o')
+    plt.title(f'{clustering_algo} Clustering - Scatter Plot')
+    plt.xlabel(columns[0])
+    plt.ylabel(columns[1])
+    plt.legend(title='Cluster', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.savefig(scatter_plot_path)
+    plt.close()
+
+    # Visualization: Pairplot (only if more than 2 columns are selected)
+    pairplot_path = None
+    if len(columns) > 2:
+        pairplot_path = f'static/charts/pairplot_{selected_file}.png'
+        sns.pairplot(df, hue="Cluster", vars=columns, palette='tab10')
+        plt.savefig(pairplot_path)
+        plt.close()
+
+    # Visualization: Hierarchical Clustering Dendrogram
+    dendrogram_path = None
+    if clustering_algo == 'Agglomerative' and len(columns) > 1:
+        Z = linkage(X_scaled, 'ward')
+        dendrogram_path = f'static/charts/dendrogram_{selected_file}.png'
+        plt.figure(figsize=(10, 7))
+        dendrogram(Z)
+        plt.title(f'{clustering_algo} Dendrogram')
+        plt.xlabel('Data Points')
+        plt.ylabel('Euclidean Distance')
+        plt.tight_layout()
+        plt.savefig(dendrogram_path)
+        plt.close()
+
+    context = {
+        'active_page': 'workspace',  # Set the active page or any other data you need
+    }
+    # Display results
+    return render_template('clustering_result.html', 
+                           result=df.head().to_html(), 
+                           scatter_plot_path=scatter_plot_path, 
+                           pairplot_path=pairplot_path,
+                           dendrogram_path=dendrogram_path,
+                           context=context,
+                           selected_file=selected_file)
 
 
 

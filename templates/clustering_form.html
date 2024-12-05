@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clustering Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-purple-800 text-white fixed h-full">
+            {% include 'sidebar.html' %}
+        </div> 
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-grow py-8">
+            <div class="bg-white rounded shadow-md p-8">
+                <h2 class="text-3xl font-semibold mb-4 text-purple-800">Clustering Form</h2>
+                <form method="POST" action="{{ url_for('clustering_results') }}">
+                    <div class="mb-4">
+                        <label for="selected_file" class="block text-sm font-medium text-gray-700">File</label>
+                        <input type="text" name="selected_file" id="selected_file" value="{{ selected_file }}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" readonly>
+                    </div>
+                    
+                    <!-- Checkbox for Selecting Exactly Two Columns for Clustering -->
+                    <div class="mb-4">
+                        <label for="columns" class="block text-sm font-medium text-gray-700">Select Two Columns for Clustering</label>
+                        <div id="columns" class="space-y-2">
+                            {% for column in columns %}
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="columns" value="{{ column }}" id="column_{{ loop.index }}" class="mr-2" onclick="validateColumnSelection()">
+                                    <label for="column_{{ loop.index }}" class="text-sm text-gray-700">{{ column }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <p id="error-message" class="mt-2 text-sm text-red-600 hidden">Please select exactly two columns.</p>
+                    </div>
+
+                    <!-- Dropdown for selecting clustering algorithm -->
+                    <div class="mb-4">
+                        <label for="clustering_algo" class="block text-sm font-medium text-gray-700">Select Clustering Algorithm</label>
+                        <select name="clustering_algo" id="clustering_algo" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="toggleDBSCANParams()">
+                            <option value="DBSCAN">DBSCAN</option>
+                            <option value="Agglomerative">Agglomerative Clustering</option>
+                            <!-- Add more algorithms here if needed -->
+                        </select>
+                    </div>
+
+                    <!-- DBSCAN Parameters (shown only when DBSCAN is selected) -->
+                    <div id="dbscan_params" class="hidden">
+                        <div class="mb-4">
+                            <label for="eps" class="block text-sm font-medium text-gray-700">Epsilon (eps)</label>
+                            <input type="text" name="eps" id="eps" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="min_samples" class="block text-sm font-medium text-gray-700">Minimum Samples (min_samples)</label>
+                            <input type="text" name="min_samples" id="min_samples" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700">
+                        Apply Clustering
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Ensure exactly two columns are selected
+        function validateColumnSelection() {
+            const checkboxes = document.querySelectorAll('input[name="columns"]:checked');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (checkboxes.length !== 2) {
+                errorMessage.classList.remove('hidden');
+            } else {
+                errorMessage.classList.add('hidden');
+            }
+        }
+
+        // Show DBSCAN parameters only when DBSCAN is selected
+        function toggleDBSCANParams() {
+            const clusteringAlgo = document.getElementById('clustering_algo').value;
+            const dbscanParams = document.getElementById('dbscan_params');
+            
+            if (clusteringAlgo === 'DBSCAN') {
+                dbscanParams.classList.remove('hidden');
+            } else {
+                dbscanParams.classList.add('hidden');
+            }
+        }
+
+        // Call toggleDBSCANParams when the page loads to make sure parameters are in the right state
+        window.onload = toggleDBSCANParams;
+    </script>
+
+</body>
+</html>

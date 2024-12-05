@@ -1,10 +1,7 @@
 #imports --
-<<<<<<< HEAD
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, jsonify
-=======
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 
->>>>>>> 8e5d549 (added modelling)
 from models import db
 import os
 from werkzeug.security import check_password_hash, generate_password_hash

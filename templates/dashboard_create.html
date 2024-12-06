@@ -12,9 +12,29 @@
             border: 1px solid #e5e7eb;
             padding: 8px;
             background-color: #f9fafb;
-            cursor: grab;
+        }
+        .grid-stack-item-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            width: 100%; /* Ensure it stretches to fill the grid width */
+            height: 100%; /* Ensure it stretches to fill the grid height */
+        }
+        .chart-container img {
+            width: 100%; /* Scale to fill width */
+            height: 100%; /* Scale to fill height */
+            object-fit: contain; /* Maintain aspect ratio */
+        }
+        .chart-container p {
+            margin-top: 4px;
+            font-size: 12px;
+            text-align: center;
         }
     </style>
+    
 </head>
 <body class="bg-gray-100">
     <div class="flex flex-col h-screen">
@@ -22,6 +42,7 @@
             <h1 class="text-2xl font-bold">Create Your Dashboard</h1>
         </header>
         <div class="flex flex-1">
+            <!-- Sidebar with available charts -->
             <aside class="w-1/3 bg-white border-r p-4 overflow-y-auto" style="max-height: calc(100vh - 64px);">
                 <h2 class="text-xl font-semibold mb-4">Available Charts</h2>
                 <div class="grid gap-4">
@@ -33,10 +54,13 @@
                     {% endfor %}
                 </div>
             </aside>
+
+            <!-- Dashboard Builder -->
             <main class="flex-1 p-4">
                 <h2 class="text-xl font-semibold mb-4">Dashboard Builder</h2>
-                <div id="dashboard_grid" class="grid-stack bg-white p-4 border rounded-lg" style="height: 500px;"></div>
+                <div id="dashboard_grid" class="grid-stack bg-white p-4 border rounded-lg" style="height: 300px;"></div>
 
+                <!-- Form to save dashboard -->
                 <form id="dashboard-form" class="mt-4" method="POST">
                     <input type="text" name="title" placeholder="Dashboard Title" class="border p-2 rounded w-full mb-2" required>
                     <textarea name="description" placeholder="Dashboard Description" class="border p-2 rounded w-full mb-2"></textarea>
@@ -49,59 +73,102 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize GridStack
             const grid = GridStack.init({
-                cellHeight: 100,
-                disableOneColumnMode: true,
-                resizable: { handles: 'all' }
+                cellHeight: 120, // Set a proper cell height
+                disableOneColumnMode: true, // Avoid collapsing behavior
+                resizable: true, // Enable resizing
+                minRow: 1, // Prevent collapse to zero rows
             });
-
+        
             const gridElement = document.getElementById('dashboard_grid');
-
-            // Enable dragging charts into the dashboard
+        
+            // Enable dragging charts
             document.querySelectorAll('.chart-thumbnail').forEach(chart => {
                 chart.addEventListener('dragstart', (event) => {
-                    event.dataTransfer.setData('chart-id', chart.dataset.id);
-                    event.dataTransfer.setData('chart-html', chart.outerHTML);
+                    event.dataTransfer.setData('chart-src', chart.querySelector('img').src);
+                    event.dataTransfer.setData('chart-title', chart.querySelector('p').innerText);
                 });
             });
-
+        
+            // Allow dropping into the dashboard grid
             gridElement.addEventListener('dragover', (event) => {
                 event.preventDefault();
             });
-
+        
             gridElement.addEventListener('drop', (event) => {
                 event.preventDefault();
-
-                // Get the chart ID and HTML content
-                const chartHtml = event.dataTransfer.getData('chart-html');
-                const chartId = event.dataTransfer.getData('chart-id');
-                if (!chartHtml || !chartId) return;
-
-                // Create a new DOM element for the widget
+        
+                // Retrieve chart details
+                const chartSrc = event.dataTransfer.getData('chart-src');
+                const chartTitle = event.dataTransfer.getData('chart-title');
+                if (!chartSrc) return;
+        
+                // Create a new widget for the chart
                 const newWidget = document.createElement('div');
+                newWidget.classList.add('grid-stack-item');
+
+                newWidget.style.width = '200px';
+                newWidget.style.height = '200px';
+                newWidget.style.backgroundColor = '#f0f0f0'; // Example style (light gray background)
+                newWidget.style.border = '1px solid #ccc';  // Example style (light gray border)
+
                 newWidget.innerHTML = `
                     <div class="grid-stack-item-content">
-                        ${chartHtml}
+                        <div class="chart-container">
+                            <img src="${chartSrc}" alt="${chartTitle}">
+                            <p>${chartTitle}</p>
+                        </div>
                     </div>
                 `;
-
+        
                 // Add widget to the grid with default dimensions
                 grid.addWidget(newWidget, {
-                    x: 0, // Default X position
-                    y: 0, // Default Y position
-                    width: 3, // Default width (3 grid units)
-                    height: 2 // Default height (2 grid units)
+                    x: 0, // Place at the first column
+                    y: 0, // Place at the first row
+                    width: 4, // Default width (4 grid units)
+                    height: 3, // Default height (3 grid units)
                 });
+        
+                // Observe widget size changes
+                observeWidgetResize(grid, newWidget);
             });
-
-
+        
+            // Function to observe size changes and update styles
+            function observeWidgetResize(grid, widget) {
+                const updateStyle = () => {
+                    // Find the node corresponding to the widget
+                    const node = grid.engine.nodes.find(n => n.el === widget);
+                    if (node) {
+                        const cellWidth = grid.cellWidth(); // Get cell width in pixels
+                        const cellHeight = grid.getCellHeight(); // Get cell height in pixels
+            
+                        // Update widget styles
+                        widget.style.width = `${node.width * cellWidth}px`;
+                        widget.style.height = `${node.height * cellHeight}px`;
+                    }
+                };
+            
+                // Listen to resize and change events
+                grid.on('resize', updateStyle);
+                grid.on('change', updateStyle);
+            
+                // Initial style update
+                updateStyle();
+            }
+            
+        
             // Save layout data on form submit
-            document.getElementById('dashboard-form').addEventListener('submit', () => {
-                document.getElementById('layout-data').value = JSON.stringify(grid.save());
+            document.getElementById('dashboard-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const layoutData = grid.save();
+                document.getElementById('layout-data').value = JSON.stringify(layoutData);
+                console.log('Layout saved:', layoutData);
+                e.target.submit();
             });
         });
-
+        
+        
     </script>
+    
 </body>
 </html>

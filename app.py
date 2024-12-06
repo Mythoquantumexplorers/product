@@ -144,7 +144,7 @@ def workspaces():
         'workspaces': workspaces,
         'active_page': 'workspaces'
     }
-    return render_template('workspaces.html',context=context)
+    return render_template('workspaces.html',context=context, company_name=current_user.name)
 
 
 @app.route('/dashboards')
@@ -164,7 +164,7 @@ def dashboards():
         'dashboards':all_dashboards,
         'active_page': 'dashboards'
     }
-    return render_template('dashboards.html', context=context)
+    return render_template('dashboards.html', context=context, company_name=current_user.name)
 
 
 @app.route('/reports')
@@ -184,7 +184,7 @@ def reports():
         'dashboards':all_reports,
         'active_page': 'reports'
     }
-    return render_template('reports.html',context=context)    
+    return render_template('reports.html',context=context, company_name=current_user.name)    
 
 
 @app.route('/workspace/<int:workspace_id>')
@@ -203,7 +203,7 @@ def workspace(workspace_id):
         'charts' : charts,
         'dashboards': dashboards
     }
-    return render_template('workspace.html',context=context)
+    return render_template('workspace.html',context=context, company_name=current_user.name)
 
 @app.route('/logout')
 @login_required
@@ -313,7 +313,7 @@ def datagrid(workspace_id):
         'filename': excel_file.filename
     }
 
-    return render_template('datagrid.html', context=context)
+    return render_template('datagrid.html', context=context, company_name=current_user.name)
 
 
 
@@ -458,7 +458,7 @@ def create_chart(workspace_id):
                 'chart': None  # Ensure chart is set explicitly
 
             }
-            return render_template('create_chart.html', context=context)
+            return render_template('create_chart.html', context=context, company_name=current_user.name)
 
     # Prepare context for GET request
     context = {
@@ -468,7 +468,7 @@ def create_chart(workspace_id):
         'active_page': 'create_chart',
         'chart_types': ['line', 'bar', 'scatter', 'histogram', 'boxplot', 'pie', 'heatmap', 'pairplot', 'violin', 'kde']
     }
-    return render_template('create_chart.html', context=context)
+    return render_template('create_chart.html', context=context, company_name=current_user.name)
 
 
 
@@ -499,7 +499,7 @@ def view_charts(workspace_id):
         'total_pages': total_pages,
         'active_page': 'view_charts'
     }
-    return render_template('view_charts.html', context=context)
+    return render_template('view_charts.html', context=context, company_name=current_user.name)
 
 
 # Static route for 'uploads'

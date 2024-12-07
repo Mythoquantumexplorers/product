@@ -81,11 +81,10 @@ class Dashboard(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
-    dashboard_images = db.Column(db.Text, nullable=True)  # Can store paths to multiple images as JSON or a delimited string
+    json_file_path = db.Column(db.String(255), nullable=False)
 
     # Foreign Key
     workspace_id = db.Column(db.Integer, db.ForeignKey('workspaces.id'), nullable=False)
-
     def __repr__(self):
         return f"<Dashboard {self.title}>"
 
@@ -105,5 +104,8 @@ class Chart(db.Model):
 
     def __repr__(self):
         return f"<Chart {self.title}>"
+    
+
+
 
 

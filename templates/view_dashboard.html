@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@7.2.0/dist/gridstack.all.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@7.2.0/dist/gridstack.min.css" rel="stylesheet">
+    <style>
+        .grid-stack {
+            background: #f8f8f8;
+            padding: 10px;
+        }
+        .chart-container img {
+            width: 100%;
+            height: auto;
+        }
+        .chart-container p {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <div class="grid-stack">
+        {% for item in layout_data %}
+        <div class="grid-stack-item" data-gs-x="{{ item.x }}" data-gs-y="{{ item.y }}" 
+             data-gs-width="{{ item.width }}" data-gs-height="{{ item.height }}">
+            <div class="grid-stack-item-content">
+                {{ item.content|safe }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const grid = GridStack.init();
+        });
+    </script>
+</body>
+</html>

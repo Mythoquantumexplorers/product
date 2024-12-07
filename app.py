@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 
 from models import db
 import os
+import json
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
@@ -562,39 +563,34 @@ def create_dashboard(workspace_id):
     # Fetch all charts for the workspace
     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
 
-    # Fetch existing dashboard data, if any
-    existing_dashboard = File.query.filter_by(workspace_id=workspace_id, filename='dashboard.json').first()
-    layout_data = None
-    if existing_dashboard:
-        with open(existing_dashboard.file_path, 'r') as f:
-            layout_data = f.read()
+    layout_data = None  # No need to fetch existing data as we're creating new dashboards
 
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
         layout_data = request.form['layout_data']
 
-        # Save dashboard layout to a file
-        dashboard_path = os.path.join('uploads', f'dashboard_{workspace_id}.json')
+        # Generate a unique filename for the JSON file
+        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        dashboard_path = os.path.join('uploads', f'dashboard_{workspace_id}_{timestamp}.json')
+        os.makedirs('uploads', exist_ok=True)  # Ensure the directory exists
         with open(dashboard_path, 'w') as f:
             f.write(layout_data)
 
-        # Update File table entry
-        file_entry = File.query.filter_by(workspace_id=workspace_id, filename='dashboard.json').first()
-        if not file_entry:
-            file_entry = File(
-                filename='dashboard.json',
-                file_path=dashboard_path,
-                workspace_id=workspace_id
-            )
-            db.session.add(file_entry)
-        else:
-            file_entry.file_path = dashboard_path
-
+        # Create a new Dashboard entry
+        new_dashboard = Dashboard(
+            title=title,
+            description=description,
+            json_file_path=dashboard_path,
+            workspace_id=workspace_id
+        )
+        db.session.add(new_dashboard)
         db.session.commit()
+
         return redirect(url_for('create_dashboard', workspace_id=workspace_id))
 
     return render_template('dashboard_create.html', charts=charts, layout_data=layout_data)
+
 
 
 
@@ -830,6 +826,24 @@ def prepare_data(workspace_id):
         flash(f"An error occurred: {str(e)}", "error")
         print("Error is:",e)
         return redirect(url_for('workspaces'))
+    
+@app.route('/workspace/<int:workspace_id>/dashboard/<int:dashboard_id>', methods=['GET'])
+@login_required
+def view_dashboard(workspace_id, dashboard_id):
+    # Fetch the dashboard by ID
+    dashboard = Dashboard.query.filter_by(id=dashboard_id, workspace_id=workspace_id).first_or_404()
+    
+    # Load the JSON file content
+    layout_data = []
+    try:
+        with open(dashboard.json_file_path, 'r') as f:
+            layout_data = json.load(f)  # Parse the JSON file
+    except FileNotFoundError:
+        flash("The dashboard file is missing.", "error")
+        return redirect(url_for('create_dashboard', workspace_id=workspace_id))
+
+    return render_template('view_dashboard.html', layout_data=layout_data, title=dashboard.title)
+
 
 
 if __name__ == '__main__':

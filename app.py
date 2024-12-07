@@ -22,6 +22,8 @@ from markdown import markdown
 from sklearn.cluster import DBSCAN
 
 
+genai.configure(api_key="AIzaSyDUCHRmNP5-LBgvLgBtfwaqIALpbCj5mng")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 
@@ -417,8 +419,6 @@ def create_chart(workspace_id):
             print(prompt)
 
 
-            genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
-            model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(prompt)
             full_description = markdown(response.text.strip())
 
@@ -498,8 +498,7 @@ def create_report(workspace_id):
             prompt += f"\n- {chart.title}: {chart.description or 'No description provided'}"
         
         # Generate content using Gemini API
-        genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
-        model = genai.GenerativeModel("gemini-1.5-flash")
+
         response = model.generate_content(prompt)
         
         # Format the content for PDF

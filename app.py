@@ -23,6 +23,8 @@ from markdown import markdown
 from sklearn.cluster import DBSCAN
 
 
+genai.configure(api_key="AIzaSyDUCHRmNP5-LBgvLgBtfwaqIALpbCj5mng")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 
@@ -418,8 +420,6 @@ def create_chart(workspace_id):
             print(prompt)
 
 
-            genai.configure(api_key="AIzaSyAgtKUZS-HsyvfKLiHDXtK2wc2SRCytSic")
-            model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(prompt)
             full_description = markdown(response.text.strip())
 
@@ -472,6 +472,147 @@ def create_chart(workspace_id):
     return render_template('create_chart.html', context=context, company_name=current_user.name)
 
 
+## Generation of Report
+from weasyprint import HTML
+from flask import make_response
+from weasyprint import HTML
+from flask import send_file
+import os
+
+@app.route('/workspace/<int:workspace_id>/report/create', methods=['GET', 'POST'])
+def create_report(workspace_id):
+    # Fetch all charts associated with the workspace
+    charts = Chart.query.filter_by(workspace_id=workspace_id).all()
+    
+    if request.method == 'POST':
+        selected_chart_ids = request.form.getlist('charts')
+        if not selected_chart_ids:
+            flash('Please select at least one chart to generate a report.', 'warning')
+            return render_template('create_report.html', charts=charts, workspace_id=workspace_id)
+        
+        # Fetch selected charts
+        selected_charts = Chart.query.filter(Chart.id.in_(selected_chart_ids)).all()
+        
+        # Build the prompt with chart descriptions
+        prompt = "Generate a comprehensive report based on the following charts:\n"
+        for chart in selected_charts:
+            prompt += f"\n- {chart.title}: {chart.description or 'No description provided'}"
+        
+        # Generate content using Gemini API
+
+        response = model.generate_content(prompt)
+        
+        # Format the content for PDF
+        full_report = markdown(response.text.strip())
+        
+        # Build the HTML content with chart images
+        pdf_content = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                h1 {{ color: #007BFF; text-align: center; }}
+                h3 {{ margin-top: 20px; }}
+                ul {{ padding-left: 20px; }}
+                .chart-image {{ max-width: 100%; height: auto; margin-top: 10px; }}
+            </style>
+        </head>
+        <body>
+            <h1>{request.form.get('report_name')}</h1>
+            <h3>Charts Included:</h3>
+            <ul>
+        """
+        
+        # Add the selected charts with images
+        for chart in selected_charts:
+            pdf_content += f"<li>{chart.title}</li>"
+            # Assuming 'image_file_path' stores the file path of the chart image
+            image_path = chart.image_file_path  # Make sure the images are served via Flask's static folder
+            pdf_content += f'<img src="{image_path}" class="chart-image" alt="{chart.title}">'
+        
+        pdf_content += f"""
+            </ul>
+            <h3>Generated Report:</h3>
+            {full_report}
+        </body>
+        </html>
+        """
+        
+        # Generate the PDF
+        pdf_file_path = f"uploads/report_{workspace_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.pdf"
+        HTML(string=pdf_content).write_pdf(pdf_file_path)
+        
+        # Save the report to the database
+        new_report = Report(
+            title=request.form.get('report_name'),
+            description=f"Generated report for selected charts in Workspace {workspace_id}.",
+            report_file=pdf_file_path,
+            workspace_id=workspace_id,
+            created_on=datetime.utcnow()
+        )
+        db.session.add(new_report)
+        db.session.commit()
+        
+        flash('Report generated successfully!', 'success')
+        return redirect(url_for('workspace', workspace_id=workspace_id))
+    
+    context = {
+        'active_page': 'create_report'
+    }
+    
+    return render_template('create_report.html', charts=charts, workspace_id=workspace_id, context=context)
+
+
+from flask import send_file
+
+@app.route('/report/<int:report_id>/view', methods=['GET'])
+def view_report(report_id):
+    # Fetch the report from the database
+    report = Report.query.get_or_404(report_id)
+    try:
+        return send_file(report.report_file, as_attachment=False, download_name=f"{report.title}.pdf", mimetype='application/pdf')
+    except FileNotFoundError:
+        flash('Report file not found.', 'error')
+        return redirect(url_for('workspace_reports', workspace_id=report.workspace_id))
+
+
+import os
+
+@app.route('/report/<int:report_id>/delete', methods=['POST'])
+def delete_report(report_id):
+    # Fetch the report from the database
+    report = Report.query.get_or_404(report_id)
+    file_path = report.report_file
+    
+    # Remove the file
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Delete the record from the database
+    db.session.delete(report)
+    db.session.commit()
+    
+    flash('Report deleted successfully.', 'success')
+    return redirect(url_for('workspace', workspace_id=report.workspace_id))
+
+
+
+@app.route('/view_chart/<int:id>')
+@login_required
+def view_chart(id):
+    
+    # Fetch the chart associated with the given id
+    chart = Chart.query.filter_by(id=id).first()  # Use first() to get a single object
+    
+    if not chart:
+        flash('Chart not found.', 'danger')
+        return redirect(url_for('workspace'))  # Redirect if chart doesn't exist
+    
+    context = {
+        'active_page': 'view_chart'
+    }
+    
+    return render_template('view_chart.html', context=context, company_name=current_user.name, chart=chart)
 
 
 
@@ -668,6 +809,21 @@ def clustering_form():
 plot_dir = 'static/charts'
 if not os.path.exists(plot_dir):
     os.makedirs(plot_dir)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 from flask import render_template, request
@@ -753,6 +909,12 @@ def clustering_results():
                            dendrogram_path=dendrogram_path,
                            context=context,
                            selected_file=selected_file)
+
+
+
+
+
+
 
 
 
@@ -843,6 +1005,8 @@ def view_dashboard(workspace_id, dashboard_id):
         return redirect(url_for('create_dashboard', workspace_id=workspace_id))
 
     return render_template('view_dashboard.html', layout_data=layout_data, title=dashboard.title)
+
+
 
 
 

@@ -89,6 +89,8 @@ class Dashboard(db.Model):
         return f"<Dashboard {self.title}>"
 
 
+
+
 # 4. Chart Model
 class Chart(db.Model):
     __tablename__ = 'chart'

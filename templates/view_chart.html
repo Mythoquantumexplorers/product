@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Chart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        // Function to toggle full chart description
+        function viewFullReport(chartId) {
+            const description = document.getElementById('description-' + chartId);
+            const fullDescription = description.getAttribute('data-full-description');
+            
+            description.innerHTML = fullDescription;  // Update description with full text
+            description.classList.remove('truncate');  // Remove truncation
+            document.getElementById('view-more-btn').style.display = 'none';  // Hide the "View More" button
+        }
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-purple-800 text-white fixed h-full">
+            {% include 'sidebar.html' %}
+        </div> 
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-grow py-8">
+          <div class="container mx-auto p-4">
+            <header class="ml-4 mr-4 bg-gray-800 text-white sticky top-0 z-50">
+              <div class="w-full flex justify-between items-center py-4 px-6">
+                  <div class="text-2xl font-semibold">View Chart</div>
+              </div>
+            </header>
+            
+            <div class="bg-white shadow-md rounded-lg p-6 mt-4">
+                <div class="text-lg font-semibold text-gray-800 mb-4">
+                    <h2>{{ chart.title }}</h2>
+                </div>
+                
+                <!-- Chart Image -->
+                <div class="mb-6 text-center">
+                    <img src="{{ '/' + chart.image_file_path }}" alt="{{ chart.title }}" class="rounded-lg mx-auto max-w-full h-auto shadow-md" />
+                </div>
+                
+                <!-- Chart Description -->
+                <div class="text-sm text-gray-600" id="description-{{ chart.id }}" 
+                     data-full-description="{{ chart.description|escape }}">
+                  {{ chart.description[:200]|safe }}...
+                </div>
+                
+                <!-- View More Button -->
+                <div id="view-more-btn" class="text-center mt-2">
+                    <button 
+                        class="text-blue-600" 
+                        onclick="viewFullReport({{ chart.id }})">
+                        View More
+                    </button>
+                </div>
+                
+                <!-- Back Button -->
+                <div class="mt-8 flex justify-center">
+                    <a href="{{ url_for('workspace', workspace_id=chart.workspace_id) }}" class="px-6 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700">
+                        Back to Workspace
+                    </a>
+                </div>
+            </div>
+        </div>
+        </main>
+    </div>
+</body>
+</html>

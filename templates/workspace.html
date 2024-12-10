@@ -47,9 +47,17 @@
                                         <a href="{{ url_for('datagrid', workspace_id=context['workspace'].id) }}">
                                             <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">View</button>
                                         </a>
-                                        <button class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">Delete</button>
+                                        <form method="POST" 
+                                            action="{{ url_for('delete_file', workspace_id=context['workspace'].id, file_id=file.id) }}" 
+                                            onsubmit="return confirm('Are you sure you want to delete this file?');" 
+                                            style="display: inline;">
+                                            <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">
+                                                Delete
+                                            </button>
+                                        </form>
+
                                         <a href="/workspace/{{ context['workspace'].id }}/prepare" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition">
-                                            Modify
+                                            Prepare Data    
                                         </a>                                        
                                     </td>
                                     
@@ -59,10 +67,34 @@
                     </table>
                 </div>
 
+                {% if not context['file_exists'] %}
                 <div class="mt-6">
-                    <button class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    <button id="uploadNewFileButton" 
+                            class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700"
+                            onclick="openUploadModal()">
                         Upload New File
                     </button>
+                </div>
+                {% endif %}
+
+                <!-- Upload Form Modal -->
+                <div id="uploadModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+                    <div class="bg-white p-6 rounded shadow-lg w-1/3">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4">Upload New File</h3>
+                        <form method="POST" action="/upload_file" enctype="multipart/form-data">
+                            <input type="hidden" name="workspace_id" value="{{ context['workspace'].id }}">
+                            <label for="fileUpload" class="block text-sm font-medium text-gray-700 mb-2">Choose a file:</label>
+                            <input type="file" id="fileUpload" name="file" accept=".csv,.xls,.xlsx"
+                                class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none">
+                            <div class="mt-4 flex justify-center">
+                                <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded mr-2" 
+                                        onclick="closeUploadModal()">Cancel</button>
+                                <button type="submit" class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700">
+                                    Upload
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <div>
@@ -77,8 +109,12 @@
                                 <tr class="border-b hover:bg-gray-50">
                                     <td class="py-3 px-4">{{ dashboard.title }}</td>
                                     <td class="py-3 px-4">
-                                        <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">View</button>
-                                        <button class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">Delete</button>
+                                        <a href="{{ url_for('view_dashboard', workspace_id=context['workspace'].id, dashboard_id=dashboard.id) }}" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">
+                                            View
+                                        </a>                                        
+                                        <a href="{{ url_for('delete_dashboard', workspace_id=context['workspace'].id, dashboard_id=dashboard.id) }}" class="bg-red-600 ml-2 text-white px-3 py-1 rounded hover:bg-red-500">
+                                            Delete
+                                        </a>   
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -173,10 +209,10 @@
 
 
     <div class="mt-8">
-    <h3 class="text-xl font-bold text-gray-700 mb-4">Financial Models</h3>
+    <h3 class="text-xl font-bold text-gray-700 mb-4">Models</h3>
     <button onclick="showFinancialModelForm()" 
             class="bg-purple-800 text-white px-4 py-2 rounded hover:bg-purple-700">
-        Apply Financial Model
+        Apply Model
     </button>
 
         <!-- Financial Model Form -->
@@ -257,6 +293,19 @@
             const form = document.getElementById('financialModelForm');
             form.classList.toggle('hidden');
         }
+
+        const uploadModal = document.getElementById('uploadModal');
+
+        // Open the upload modal
+        function openUploadModal() {
+            uploadModal.classList.remove('hidden');
+        }
+
+        // Close the upload modal
+        function closeUploadModal() {
+            uploadModal.classList.add('hidden');
+        }
+
     </script>
     
 

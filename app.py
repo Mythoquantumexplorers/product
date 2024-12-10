@@ -184,7 +184,7 @@ def reports():
             all_reports.append(r)
     
     context = {
-        'dashboards':all_reports,
+        'reports':all_reports,
         'active_page': 'reports'
     }
     return render_template('reports.html',context=context, company_name=current_user.name)    
@@ -198,13 +198,15 @@ def workspace(workspace_id):
     reports = Report.query.filter_by(workspace_id=workspace_id).all()
     dashboards = Dashboard.query.filter_by(workspace_id=workspace_id).all()
     charts = Chart.query.filter_by(workspace_id=workspace_id).all()
+    file_exists = (len(files)>0)
     context = {
         'workspace': workspace,
         'active_page': 'workspaces',
         'files': files,
         'reports': reports,
         'charts' : charts,
-        'dashboards': dashboards
+        'dashboards': dashboards,
+        'file_exists': file_exists
     }
     return render_template('workspace.html',context=context, company_name=current_user.name)
 
@@ -593,7 +595,7 @@ def delete_report(report_id):
     db.session.commit()
     
     flash('Report deleted successfully.', 'success')
-    return redirect(url_for('workspace', workspace_id=report.workspace_id))
+    return redirect(request.referrer)
 
 
 
@@ -1008,7 +1010,84 @@ def view_dashboard(workspace_id, dashboard_id):
 
 
 
+from flask import redirect, url_for, flash
+import os
 
+@app.route('/workspace/<int:workspace_id>/file/<int:file_id>/delete', methods=['POST'])
+def delete_file(workspace_id, file_id):
+    file = File.query.get(file_id)
+    if file and file.workspace_id == workspace_id:
+        try:
+            # Delete the file from the filesystem
+            if os.path.exists(file.file_path):
+                os.remove(file.file_path)
+
+            # Delete the file record from the database
+            db.session.delete(file)
+            db.session.commit()
+            flash("File deleted successfully.", "success")
+        except Exception as e:
+            flash(f"Error deleting file: {e}", "error")
+    else:
+        flash("File not found or does not belong to this workspace.", "error")
+
+    return redirect(url_for('workspace', workspace_id=workspace_id))
+
+
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    # Check if the POST request has the file part
+    if 'file' not in request.files:
+        flash('No file part in the request', 'danger')
+        return redirect(request.referrer)
+
+    file = request.files['file']
+    workspace_id = request.form.get('workspace_id')  # Pass workspace_id in the form
+    
+    # Validate file and workspace
+    if file.filename == '':
+        flash('No selected file', 'warning')
+        return redirect(request.referrer)
+    
+    # Secure filename and save
+    if file:
+        filename = secure_filename(file.filename)
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        os.makedirs(os.path.dirname(upload_path), exist_ok=True)  # Ensure directory exists
+        file.save(upload_path)
+
+        # Add file record to database
+        new_file = File(filename=filename, file_path=upload_path, workspace_id=workspace_id)
+        db.session.add(new_file)
+        db.session.commit()
+        
+        flash('File uploaded successfully!', 'success')
+        return redirect(url_for('workspace', workspace_id=workspace_id))
+
+    flash('File upload failed. Please try again.', 'danger')
+    return redirect(request.referrer)
+
+
+@app.route('/workspace/<int:workspace_id>/dashboard/<int:dashboard_id>/delete', methods=['GET'])
+@login_required
+def delete_dashboard(workspace_id, dashboard_id):
+    # Fetch the dashboard by its ID and workspace ID
+    dashboard = Dashboard.query.filter_by(id=dashboard_id, workspace_id=workspace_id).first_or_404()
+    
+    # Optionally, you can delete the dashboard's associated JSON file if needed
+    try:
+        os.remove(dashboard.json_file_path)  # Remove the file from the filesystem
+    except FileNotFoundError:
+        flash("The dashboard file is missing.", "error")
+
+    # Delete the dashboard from the database
+    db.session.delete(dashboard)
+    db.session.commit()
+    
+    flash(f"Dashboard '{dashboard.title}' has been deleted.", "success")
+    
+    # Redirect back to the workspace's dashboard list
+    return redirect(request.referrer)
 
 if __name__ == '__main__':
     app.run(debug=True)

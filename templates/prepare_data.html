@@ -37,7 +37,7 @@
             <ul class="space-y-2">
                 {% for column in columns %}
                     <li>
-                        <form method="POST" action="{{ url_for('prepare_data', workspace_id=workspace.id) }}">
+                        <form method="POST" action="{{ url_for('data_preparation.prepare_data', workspace_id=workspace.id) }}">
                             <input type="hidden" name="selected_column" value="{{ column }}">
                             <button type="submit" class="text-blue-600 hover:underline">
                                 {{ column }}
@@ -61,7 +61,7 @@
                         <li>Null Count: {{ statistics.null_count }}</li>
                     </ul>
                 </div>
-                <form method="POST" action="{{ url_for('prepare_data', workspace_id=workspace.id) }}">
+                <form method="POST" action="{{ url_for('data_preparation.prepare_data', workspace_id=workspace.id) }}">
                     <input type="hidden" name="column_to_modify" value="{{ selected_column }}">
                     <h3 class="text-lg font-medium mb-2">Handle Missing Values</h3>
                     <div class="space-y-2">

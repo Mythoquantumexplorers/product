@@ -38,6 +38,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'  # Path to store uploaded files
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Ensure upload folder exists
 app.secret_key = os.urandom(24)
+
+# Registering blueprints --
+from routes.data_preparation import data_preparation_bp
+app.register_blueprint(data_preparation_bp)
+
+
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)  # Bind LoginManager to your Flask app
@@ -264,7 +270,7 @@ def add_workspace():
         db.session.commit()
 
         flash("Workspace created successfully!", "success")
-        return redirect(url_for('prepare_data', workspace_id=new_workspace.id))
+        return redirect(url_for('data_preparation.prepare_data', workspace_id=new_workspace.id))
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "error")
@@ -911,85 +917,7 @@ def clustering_results():
                            dendrogram_path=dendrogram_path,
                            context=context,
                            selected_file=selected_file)
-
-
-
-
-
-
-
-
-
-
-@app.route('/workspace/<int:workspace_id>/prepare', methods=['GET', 'POST'])
-@login_required
-def prepare_data(workspace_id):
-    try:
-        # Fetch the workspace
-        workspace = Workspace.query.get_or_404(workspace_id)
-        files = File.query.filter_by(workspace_id=workspace_id).all()
-        data_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
-
-        if not data_file:
-            return "No Excel file found in the workspace.", 404
-
-        file_path = data_file.file_path
-        data = pd.read_excel(file_path)
-        selected_column = None
-        statistics = None
-
-        if request.method == 'POST':
-            if 'columns' in request.form:  # Form 1: Column Selection
-                selected_columns = request.form.getlist('columns')
-                if selected_columns:
-                    data = data[selected_columns]
-                    flash("Columns selected successfully!", "success")
-            elif 'selected_column' in request.form:  # Form 2: Column Details
-                selected_column = request.form.get('selected_column')
-                statistics = {}
-
-                # Check if the selected column is numeric
-                if pd.api.types.is_numeric_dtype(data[selected_column]):
-                    statistics["mean"] = data[selected_column].mean()
-                    statistics["median"] = data[selected_column].median()
-                    statistics["std"] = data[selected_column].std()
-                else:
-                    # Set statistics to "N/A" for non-numeric columns
-                    statistics["mean"] = "N/A"
-                    statistics["median"] = "N/A"
-                    statistics["std"] = "N/A"
-
-                # Always calculate the null count
-                statistics["null_count"] = data[selected_column].isnull().sum()
-
-            elif 'column_to_modify' in request.form:  # Handle NULL Values
-                column = request.form.get('column_to_modify')
-                null_action = request.form.get('null_action')
-                if null_action == 'drop':
-                    data = data.dropna(subset=[column])
-                elif null_action == 'replace':
-                    replacement_value = request.form.get('replace_value')
-                    data[column].fillna(replacement_value, inplace=True)
-                flash("NULL handling applied successfully!", "success")
-            
-            # Save modified file
-            modified_file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{data_file.filename}")
-            data.to_excel(modified_file_path, index=False)
-            data_file.file_path = modified_file_path
-            db.session.commit()
-            flash("Dataset modified successfully!", "success")
-        return render_template(
-            'prepare_data.html',
-            workspace=workspace,
-            columns=data.columns,
-            selected_column=selected_column,
-            statistics=statistics
-        )
-
-    except Exception as e:
-        flash(f"An error occurred: {str(e)}", "error")
-        print("Error is:",e)
-        return redirect(url_for('workspaces'))
+                           
     
 @app.route('/workspace/<int:workspace_id>/dashboard/<int:dashboard_id>', methods=['GET'])
 @login_required

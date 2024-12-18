@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Tables</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        // Function to dynamically update columns dropdown when a table is selected
+        function updateColumns(tableId, columnsDropdownId, tablesJson) {
+            const selectedTable = document.getElementById(tableId).value;
+            const columnsDropdown = document.getElementById(columnsDropdownId);
+
+            // Clear current options
+            columnsDropdown.innerHTML = "<option value='' disabled selected>Select a column</option>";
+
+            // Populate new options based on selected table
+            if (tablesJson[selectedTable]) {
+                tablesJson[selectedTable].forEach(col => {
+                    const option = document.createElement("option");
+                    option.value = col.column;
+                    option.textContent = `${col.column} (${col.dtype})`;
+                    columnsDropdown.appendChild(option);
+                });
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 p-6">
+
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Join Tables</h1>
+
+        <!-- Form for Joining Tables -->
+        <form method="POST" action="{{ url_for('join_tables', workspace_id=workspace_id) }}" class="space-y-4">
+            <!-- Select Table 1 -->
+            <div>
+                <label for="table1" class="block font-semibold">Select Table 1:</label>
+                <select id="table1" name="table1" class="border p-2 rounded w-full" onchange="updateColumns('table1', 'table1-columns-dropdown', {{ tables | tojson }})">
+                    <option value="" disabled selected>Select Table 1</option>
+                    {% for table_name in tables.keys() %}
+                        <option value="{{ table_name }}" {% if file1_selected == table_name %}selected{% endif %}>
+                            {{ table_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Select Join Column for Table 1 -->
+            <div>
+                <label for="table1-columns-dropdown" class="block font-semibold">Select Join Column from Table 1:</label>
+                <select id="table1-columns-dropdown" name="join_column_file1" class="border p-2 rounded w-full">
+                    <option value="" disabled selected>Select a column</option>
+                    {% if file1_selected %}
+                        {% for col in tables[file1_selected] %}
+                            <option value="{{ col.column }}" {% if join_column_file1 == col.column %}selected{% endif %}>
+                                {{ col.column }} ({{ col.dtype }})
+                            </option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+
+            <!-- Select Table 2 -->
+            <div>
+                <label for="table2" class="block font-semibold">Select Table 2:</label>
+                <select id="table2" name="table2" class="border p-2 rounded w-full" onchange="updateColumns('table2', 'table2-columns-dropdown', {{ tables | tojson }})">
+                    <option value="" disabled selected>Select Table 2</option>
+                    {% for table_name in tables.keys() %}
+                        <option value="{{ table_name }}" {% if file2_selected == table_name %}selected{% endif %}>
+                            {{ table_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Select Join Column for Table 2 -->
+            <div>
+                <label for="table2-columns-dropdown" class="block font-semibold">Select Join Column from Table 2:</label>
+                <select id="table2-columns-dropdown" name="join_column_file2" class="border p-2 rounded w-full">
+                    <option value="" disabled selected>Select a column</option>
+                    {% if file2_selected %}
+                        {% for col in tables[file2_selected] %}
+                            <option value="{{ col.column }}" {% if join_column_file2 == col.column %}selected{% endif %}>
+                                {{ col.column }} ({{ col.dtype }})
+                            </option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+
+            <!-- Join Type -->
+            <div>
+                <label class="block font-semibold">Join Type:</label>
+                <select name="join_type" class="border p-2 rounded w-full">
+                    <option value="inner" {% if join_type == 'inner' %}selected{% endif %}>Inner Join</option>
+                    <option value="left" {% if join_type == 'left' %}selected{% endif %}>Left Join</option>
+                    <option value="right" {% if join_type == 'right' %}selected{% endif %}>Right Join</option>
+                    <option value="outer" {% if join_type == 'outer' %}selected{% endif %}>Full Outer Join</option>
+                </select>
+            </div>
+
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Perform Join
+            </button>
+        </form>
+
+        <!-- Results -->
+        {% if result_data %}
+        <div class="mt-6">
+            <h2 class="text-xl font-semibold mb-2">Resulting Table</h2>
+            <div class="overflow-auto">
+                <table class="table-auto border-collapse w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            {% for key in result_data[0].keys() %}
+                                <th class="border px-4 py-2">{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in result_data %}
+                            <tr>
+                                {% for value in row.values() %}
+                                    <td class="border px-4 py-2">{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

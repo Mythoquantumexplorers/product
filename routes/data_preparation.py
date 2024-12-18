@@ -173,13 +173,90 @@ def prepare_data(workspace_id):
             columns=data.columns,
             selected_column=selected_column,
             statistics=statistics,
-            data_type = data_type
+            data_type = data_type,
+            data=data
         )
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "error")
         print("Error1 is:",e)
         return redirect(url_for('workspaces'))
+
+
+
+from flask import request, redirect, url_for, flash
+import pandas as pd
+import pandas as pd
+from flask import request, redirect, url_for, flash
+
+@data_preparation_bp.route('/workspace/<int:workspace_id>/prepare/combine_split_columns', methods=['POST'])
+def combine_split_columns(workspace_id):
+    """
+    Handles combining and splitting of columns based on user input.
+    """
+    workspace = Workspace.query.get_or_404(workspace_id)
+    files = File.query.filter_by(workspace_id=workspace_id).all()
+    data_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
+    if not data_file:
+        return "No Excel file found in the workspace.", 404
+    action_type = request.form.get('action_type')  # 'combine' or 'split'
+
+
+    file_path = data_file.file_path
+    data = pd.read_excel(file_path)
+
+    try:
+        if action_type == "combine":
+            # Combine Columns Logic
+            columns_to_combine = request.form.getlist('columns_to_combine')
+            delimiter = request.form.get('combine_delimiter', ",")
+            new_column_name = request.form.get('new_column_name', "combined_column")
+
+            if not columns_to_combine:
+                flash("Please select at least two columns to combine.", "error")
+                return redirect(url_for('data_preparation.prepare_data', workspace_id=workspace_id))
+
+            # Combine selected columns into a new column
+            data[new_column_name] = data[columns_to_combine].astype(str).agg(delimiter.join, axis=1)
+
+        elif action_type == "split":
+            # Split Column Logic
+            column_to_split = request.form.get('column_to_split')
+            delimiter = request.form.get('split_delimiter', ",")
+            new_columns = request.form.get('split_new_columns', "").split(",")
+            
+            print("reached here ....")
+            
+            if not column_to_split or not delimiter or not new_columns:
+                flash("Please provide a column, delimiter, and new column names for splitting.", "error")
+                return redirect(url_for('data_preparation.prepare_data', workspace_id=workspace_id))
+
+            # Perform splitting operation
+            split_data = data[column_to_split].str.split(delimiter, expand=True)
+
+            # Map split parts to new column names
+            for i, col_name in enumerate(new_columns):
+                if i < split_data.shape[1]:  # Only assign if index is valid
+                    data[col_name.strip()] = split_data[i]
+
+        else:
+            flash("Invalid action type.", "error")
+            return redirect(url_for('data_preparation.prepare_data', workspace_id=workspace_id))
+
+        # Save updated data back to the workspace
+        print("reached here to save...")
+        upload_foler = current_app.config['UPLOAD_FOLDER']
+        modified_file_path = os.path.join(upload_foler, f"{data_file.filename}")
+        data.to_excel(modified_file_path, index=False)
+        data_file.file_path = modified_file_path
+        db.session.commit()
+        flash("Dataset modified successfully!", "success")
+
+    except Exception as e:
+        flash(f"Error processing columns: {str(e)}", "error")
+
+    return redirect(url_for('data_preparation.prepare_data', workspace_id=workspace_id))
+
 
 
 @data_preparation_bp.route('/data-preparation/convert-datatype/<int:workspace_id>', methods=['POST'])
@@ -227,3 +304,46 @@ def convert_datatype(workspace_id):
         flash(f"Error converting column '{column_name}' to {new_data_type}: {str(e)}", "error")
         print("Error in conversion is:",e)
     return redirect(url_for('data_preparation.prepare_data', workspace_id=workspace_id))
+
+
+@data_preparation_bp.route('/workspace/<int:workspace_id>/prepare/filter', methods=['POST'])
+def filter_data(workspace_id):
+    workspace = Workspace.query.get_or_404(workspace_id)
+    files = File.query.filter_by(workspace_id=workspace_id).all()
+    data_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
+    if not data_file:
+        return "No Excel file found in the workspace.", 404
+
+    file_path = data_file.file_path
+    data = pd.read_excel(file_path)
+    # Get the filter criteria from the form
+    column_to_filter = request.form.get('filter_column')
+    filter_min = request.form.get('filter_min')
+    filter_max = request.form.get('filter_max')
+
+    # Convert the min/max values to numeric if provided
+    if filter_min:
+        filter_min = float(filter_min)
+    if filter_max:
+        filter_max = float(filter_max)
+
+    # Apply the filter if both min and max are provided
+    if filter_min is not None and filter_max is not None:
+        filtered_data = data[(data[column_to_filter] >= filter_min) & (data[column_to_filter] <= filter_max)]
+    else:
+        filtered_data = data
+    # Save modified file
+    print("reached here...")
+    upload_foler = current_app.config['UPLOAD_FOLDER']
+    modified_file_path = os.path.join(upload_foler, f"{data_file.filename}")
+    filtered_data.to_excel(modified_file_path, index=False)
+    data_file.file_path = modified_file_path
+    db.session.commit()
+    flash("Dataset modified successfully!", "success")
+    # Send the filtered data back to the template
+    return render_template(
+        'prepare_data.html',
+        workspace=workspace,
+        columns=data.columns.tolist(),
+        data=filtered_data
+    )

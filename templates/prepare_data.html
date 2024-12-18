@@ -185,11 +185,126 @@
                         </button>
                     </div>
                 </form>
+
+               
+                
+
             {% else %}
                 <p class="text-gray-600">Select a column to view details and handle NULL values.</p>
             {% endif %}
         </div>
     </div>
+        <!-- Combine Columns Form -->
+      <!-- Combine Columns Form -->
+      <form method="POST" action="/workspace/{{ workspace.id }}/prepare/combine_split_columns" class="bg-white p-6 rounded-lg shadow-md space-y-4 mt-6">
+        <h3 class="text-lg font-medium mb-2">Combine Columns</h3>
+        <input type="hidden" name="action_type" value="combine">
+
+        <!-- Dynamically populate columns -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">Select Columns to Combine:</label>
+            <select name="columns_to_combine" multiple class="border p-2 rounded w-full" onchange="updatePreview(this, 'combine-column-preview')">
+                {% for column in columns %}
+                    <option value="{{ column }}">{{ column }}</option>
+                {% endfor %}
+            </select>
+            <p class="text-sm text-gray-500 mt-1">Hold CTRL (or CMD) to select multiple columns.</p>
+        </div>
+
+        <!-- Delimiter Input -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">Delimiter:</label>
+            <input type="text" name="combine_delimiter" placeholder="e.g., -" class="border p-2 rounded w-full">
+        </div>
+
+        <!-- New Column Name -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">New Column Name:</label>
+            <input type="text" name="new_column_name" placeholder="e.g., combined_column" class="border p-2 rounded w-full">
+        </div>
+
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+            Combine Columns
+        </button>
+    </form>
+
+    <!-- Combine Columns Preview -->
+    <div class="bg-white p-4 mt-6 rounded-lg shadow-md" id="combine-column-preview">
+        <h3 class="text-lg font-medium mb-2">Selected Columns Preview:</h3>
+        <p class="text-gray-500">Select columns to combine to view their previews.</p>
+    </div>
+
+    <!-- Split Column Form -->
+    <form method="POST" action="/workspace/{{ workspace.id }}/prepare/combine_split_columns" class="bg-white p-6 rounded-lg shadow-md space-y-4 mt-6">
+        <h3 class="text-lg font-medium mb-2">Split Column</h3>
+        <input type="hidden" name="action_type" value="split">
+
+        <!-- Dynamically populate single column selection -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">Select Column to Split:</label>
+            <select name="column_to_split" class="border p-2 rounded w-full" onchange="updateSplitColumnPreview(this)">
+                {% for column in columns %}
+                    <option value="{{ column }}">{{ column }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Delimiter Input -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">Delimiter:</label>
+            <input type="text" name="split_delimiter" placeholder="e.g., -" class="border p-2 rounded w-full">
+        </div>
+
+        <!-- New Column Names -->
+        <div class="mb-4">
+            <label class="block mb-2 font-semibold">New Column Names (comma-separated):</label>
+            <input type="text" name="split_new_columns" placeholder="e.g., part1, part2" class="border p-2 rounded w-full">
+            <p class="text-sm text-gray-500 mt-1">Enter column names for the split parts separated by commas.</p>
+        </div>
+
+        <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">
+            Split Column
+        </button>
+    </form>
+
+    <!-- Split Column Preview -->
+    <div class="bg-white p-4 mt-6 rounded-lg shadow-md" id="split-column-preview">
+        <h3 class="text-lg font-medium mb-2">Selected Column Preview:</h3>
+        <p class="text-gray-500">Select a column to split to view its preview.</p>
+    </div>
+
+
+        <!-- Filter Rows and Columns Form -->
+        <form method="POST" action="/workspace/{{ workspace.id }}/prepare/filter" class="bg-white p-6 rounded-lg shadow-md space-y-4 mt-6">
+            <h3 class="text-lg font-medium mb-2">Filter Rows and Columns</h3>
+    
+            <!-- Column Selection -->
+            <div class="mb-4">
+                <label class="block mb-2 font-semibold">Select Column to Filter:</label>
+                <select name="filter_column" class="border p-2 rounded w-full">
+                    {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <!-- Range Selection -->
+            <div class="mb-4">
+                <label class="block mb-2 font-semibold">Min Value:</label>
+                <input type="number" name="filter_min" placeholder="Enter min value" class="border p-2 rounded w-full">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block mb-2 font-semibold">Max Value:</label>
+                <input type="number" name="filter_max" placeholder="Enter max value" class="border p-2 rounded w-full">
+            </div>
+    
+            <button type="submit" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg">
+                Filter Rows
+            </button>
+        </form>
+        
+    
 </div>
 
 <script>
@@ -229,6 +344,38 @@
         const method = document.getElementById('outlier_method').value;
         const zScoreInput = document.getElementById('z_score_threshold_section');
         zScoreInput.style.display = method === 'z_score' ? 'block' : 'none';
+    }
+</script>
+<script>
+    // Function to update column preview dynamically
+    function updatePreview(selectElement, previewElementId) {
+        const selectedColumns = Array.from(selectElement.selectedOptions).map(option => option.value);
+        const previewContainer = document.getElementById(previewElementId);
+        
+        // Clear the previous preview content
+        previewContainer.innerHTML = '';
+        
+        // Add the preview for selected columns (this should come from the backend data)
+        selectedColumns.forEach(column => {
+            const columnPreview = document.createElement('div');
+            columnPreview.className = 'mb-2';
+            columnPreview.innerHTML = `<strong>${column}:</strong> (Preview data here)`;
+            previewContainer.appendChild(columnPreview);
+        });
+    }
+
+    // Function to update preview for split column
+    function updateSplitColumnPreview(selectElement) {
+        const columnName = selectElement.value;
+        const previewContainer = document.getElementById('split-column-preview');
+        
+        // Clear the previous preview content
+        previewContainer.innerHTML = '';
+
+        if (columnName) {
+            // For the sake of example, showing placeholder preview data
+            previewContainer.innerHTML = `<strong>${columnName}:</strong> (Preview data here)`;
+        }
     }
 </script>
 </body>

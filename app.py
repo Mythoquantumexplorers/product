@@ -277,13 +277,12 @@ def add_workspace():
         return redirect(request.url)
     
 
-@app.route('/datagrid/<int:workspace_id>')
+@app.route('/workspace/datagrid/<int:file_id>')
 @login_required
-def datagrid(workspace_id):
+def datagrid(file_id):
     # Fetch the workspace and associated files
-    workspace = Workspace.query.get_or_404(workspace_id)
-    files = File.query.filter_by(workspace_id=workspace_id).all()
-
+    files = File.query.filter_by(id=file_id)
+    
     # Find the first XLS/XLSX file
     excel_file = next((file for file in files if file.filename.endswith(('.xls', '.xlsx'))), None)
 
@@ -1017,5 +1016,139 @@ def delete_dashboard(workspace_id, dashboard_id):
     # Redirect back to the workspace's dashboard list
     return redirect(request.referrer)
 
+
+    
+@app.route('/workspace/<int:workspace_id>/join_tables', methods=['GET', 'POST'])
+def join_tables(workspace_id):
+    workspace = Workspace.query.get_or_404(workspace_id)
+    files = File.query.filter_by(workspace_id=workspace_id).all()
+
+    if len(files) < 2:
+        flash('You need at least two files to perform a join.', 'danger')
+        return redirect(url_for('workspace', workspace_id=workspace_id))
+
+    # Prepare a dictionary of tables with metadata (columns and datatypes)
+    tables = {}
+    for file in files:
+        try:
+            file_path = file.file_path
+            table = pd.read_excel(file_path)  # Each file has one table
+            columns_metadata = [
+                {"column": col, "dtype": str(table[col].dtype)} for col in table.columns
+            ]
+            tables[file.filename] = columns_metadata
+        except Exception as e:
+            flash(f"Error reading file {file.filename}: {str(e)}", 'danger')
+
+    if request.method == 'POST':
+        # Get form inputs
+        file1_name = request.form.get('table1')
+        file2_name = request.form.get('table2')
+        join_column_file1 = request.form.get('join_column_file1')
+        join_column_file2 = request.form.get('join_column_file2')
+        join_type = request.form.get('join_type')
+
+        # Validate inputs
+        if not all([file1_name, file2_name, join_column_file1, join_column_file2, join_type]):
+            flash('Please fill in all fields to join tables.', 'danger')
+            return redirect(request.url)
+
+        if file1_name not in tables or file2_name not in tables:
+            flash('Selected files do not exist.', 'danger')
+            return redirect(request.url)
+
+        try:
+            # Load tables
+            table1_path = next(file.file_path for file in files if file.filename == file1_name)
+            table2_path = next(file.file_path for file in files if file.filename == file2_name)
+            table1 = pd.read_excel(table1_path)
+            table2 = pd.read_excel(table2_path)
+
+            # Perform the join
+            merged_table = pd.merge(
+                table1,
+                table2,
+                left_on=join_column_file1,
+                right_on=join_column_file2,
+                how=join_type
+            )
+
+            # Convert to JSON for rendering
+            merged_data = merged_table.to_dict(orient='records')
+
+            return render_template(
+                'join_tables.html',
+                workspace_id=workspace_id,
+                tables=tables,
+                result_data=merged_data,
+                file1_selected=file1_name,
+                file2_selected=file2_name,
+                join_column_file1=join_column_file1,
+                join_column_file2=join_column_file2,
+                join_type=join_type
+            )
+        except Exception as e:
+            flash(f'Error during table join: {str(e)}', 'danger')
+
+    return render_template(
+        'join_tables.html',
+        workspace_id=workspace_id,
+        tables=tables,
+        result_data=None
+    )
+
+
+
+ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
+
+
+def allowed_file(filename):
+    """Check if the uploaded file has an allowed extension."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    
+@app.route('/add_file/<int:workspace_id>', methods=['POST'])
+def add_file(workspace_id):
+    print("reached in the add_file");
+    """Handle file upload and save it to the server."""
+    # Check if the request contains a file part
+    if 'file' not in request.files:
+        flash('No file part in the request', 'error')
+        return redirect(url_for('workspace_details', workspace_id=workspace_id))
+
+    file = request.files['file']
+    file_name = request.form.get('file_name')
+    
+    try:
+        # Get form data
+        datafile = request.files.get('file')
+
+
+        datafile_filename = secure_filename(datafile.filename)
+
+        # Save files to the upload folder
+        datafile_path = os.path.join(app.config['UPLOAD_FOLDER'], datafile_filename)
+        datafile.save(datafile_path)
+
+
+
+        # Associate files with the workspace
+        # image_file = File(filename=image_filename, file_path=image_path, workspace_id=new_workspace.id)
+        data_file = File(filename=datafile_filename, file_path=datafile_path, workspace_id=workspace_id)
+
+        # db.session.add(image_file)
+        db.session.add(data_file)
+        db.session.commit()
+
+        return redirect(url_for('workspace', workspace_id=workspace_id))
+
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        return redirect(request.url)
+    
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+    
+    

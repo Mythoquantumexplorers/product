@@ -1,18 +1,20 @@
 <!-- Navbar -->
-<header class="bg-gray-800 text-white sticky sticky top-0 z-50">
+<header class="bg-gray-900 text-white sticky sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center py-4 px-6">
         <div class="text-2xl font-bold">VyuhShastra</div>
         <nav class="space-x-6">
             <a href="/" class="hover:text-purple-400">Home</a>
             <a href="/workspaces" class="hover:text-purple-400">Workspaces</a>
-            <a href="/dashboards" class="hover:text-purple-400">Dashboards</a>
-            <a href="/reports" class="hover:text-purple-400">Reports</a>
-            <a href="/contact" class="hover:text-purple-400">Contact</a>
+            <!-- <a href="/dashboards" class="hover:text-purple-400">Dashboards</a> -->
+            <a href="#" class="hover:text-purple-400">Features</a>
+            <!-- <a href="/reports" class="hover:border lg">Reports</a> -->
             {% if login %}
                 <a href="/logout" class="hover:text-purple-400">Logout</a>
             {% else %}
-                <a href="/login" class="hover:text-purple-400">Login</a>
+            <a href="/contact" class="hover:text-purple-400">Contact</a>
             {% endif %}
+            <a href="/login" class="hover:text-purple-400">Login</a>
+
         </nav>
     </div>
 </header>
